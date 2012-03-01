@@ -11,8 +11,7 @@ import collection.mutable._
 //val interestingColumnNames = List("RT","PUMA","ST","SEX","ANC","ANC1P","ANC2P","PINCP","SCHL","ESR")
 val interestingColumnNames = List("SEX","AGEP","ANC","PINCP","SCHL")
 val buckets = Map(
-  "< 0" -> "",
-  //"< 0" -> (row:Array[String]) => false,
+  "< 0" -> (row:CSVRow) => false,
   "0 <= i < 10000" -> "",
   "10000 <= i < 20000" -> "",
   "20000 <= i < 30000" -> "",
@@ -62,24 +61,23 @@ println((interestingColumns.reverse) map { nextLine(_).toString() } mkString(","
 // TODO print out bucket names
 nextLine = pass1.readNext()
 while (nextLine != null) {
-    print((interestingColumns.reverse) map { nextLine(_).toString() } mkString(","))
     /*
+    print((interestingColumns.reverse) map { nextLine(_).toString() } mkString(","))
+    println
+    */
+
     val row = new CSVRow(nextLine,columnsMap)
     if (!pumaMap.contains(row.get("PUMA"))) pumaMap.put(row.get("PUMA"),Map[String,Int]())
     val hm = pumaMap.get(row.get("PUMA")).get
     buckets.foreach { kv => 
       hm.put(kv._1,kv._2(row))
     }
-    */
-    println
     nextLine = pass1.readNext()
 }
 
-/*
 pumaMap.foreach { kv =>
   println(kv._1 +","+ (kv._2 map))
 }
-*/
 
 ////////////////////////////////////////////////////////////////////////////////*}}}*/
 // vim: set fdm=marker:

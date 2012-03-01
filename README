@@ -7,3 +7,9 @@ An interractive viz exploring this question.
 Group the data by State by income/sex/gender/etc and #.
 
 scalas readIndvidualData.scala csv_pnc/ss09pnc.csv | uniq -c > out.csv
+
+---
+
+Before running or modifying package.json do this:
+
+cake copyDependencies 
