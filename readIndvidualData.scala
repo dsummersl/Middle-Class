@@ -5,13 +5,14 @@ libraryDependencies ++= Seq(
 */
 import au.com.bytecode.opencsv._
 import java.io.FileReader
-import java.util.{Map,HashMap}
+import collection.mutable._
 
 //val interestingColumnNames = List("RT","PUMA","ST","INTP","SEX","ANC","ANC1P","ANC2P","PINCP","ADJINC","OIP","PAP","RETP","SCHL","SEMP","SSIP","SSP","WAGP","ESR")
 //val interestingColumnNames = List("RT","PUMA","ST","SEX","ANC","ANC1P","ANC2P","PINCP","SCHL","ESR")
 val interestingColumnNames = List("SEX","AGEP","ANC","PINCP","SCHL")
 val buckets = Map(
-  "< 0" -> (row:Array[String]) => false,
+  "< 0" -> "",
+  //"< 0" -> (row:Array[String]) => false,
   "0 <= i < 10000" -> "",
   "10000 <= i < 20000" -> "",
   "20000 <= i < 30000" -> "",
@@ -22,8 +23,7 @@ val buckets = Map(
   "70000 <= i < 80000" -> "",
   "80000 <= i < 90000" -> "",
   "90000 <= i < 100000" -> "",
-  "i >= 100000" -> "",
-)
+  "i >= 100000" -> "")
 
 // nc-age-12-sex-1-totals.csv
 // So that w/o drilling into the data you immediately have totals just from the overall totals files?
@@ -43,7 +43,7 @@ val buckets = Map(
 
 /** Convenience class for mapping between CSV rows and their values. */
 class CSVRow(val row:Array[String], val columnsMap:Map[String,Int]) {
-  def get(val v:String):String = row[columnsMap.get(v)]
+  def get(v:String):String = row(columnsMap.get(v).get)
 }
 
 val pass1 = new CSVReader(new FileReader(args(0)))
@@ -51,30 +51,35 @@ val pass1 = new CSVReader(new FileReader(args(0)))
 // compute a mapping between CSV column names and their indexes:
 var nextLine:Array[String] = pass1.readNext()
 var interestingColumns = List[Int]()
-var columnsMap:Map[String,Int] = new HashMap
-var indx:Int = 0
+val columnsMap:Map[String,Int] = Map[String,Int]()
+var indx = 0
 for (c <- nextLine) { columnsMap.put(c,indx); indx+=1 }
 for (c <- nextLine if interestingColumnNames.contains(c)) interestingColumns ::= nextLine.indexOf(c)
 
 // we'll group by PUMA
-var pumaMap:Map[String,Map[String,Int]] = new HashMap
+val pumaMap = Map[String,Map[String,Int]]()
 println((interestingColumns.reverse) map { nextLine(_).toString() } mkString(","))
 // TODO print out bucket names
 nextLine = pass1.readNext()
 while (nextLine != null) {
-    //print((interestingColumns.reverse) map { nextLine(_).toString() } mkString(","))
+    print((interestingColumns.reverse) map { nextLine(_).toString() } mkString(","))
+    /*
     val row = new CSVRow(nextLine,columnsMap)
-    if (!pumaMap.containsKey(row.get("PUMA")) pumaMap.put(row.get("PUMA"),new HashMap[String,Int]())
-    val hm = pumaMap.get(row.get("PUMA"))
+    if (!pumaMap.contains(row.get("PUMA"))) pumaMap.put(row.get("PUMA"),Map[String,Int]())
+    val hm = pumaMap.get(row.get("PUMA")).get
     buckets.foreach { kv => 
       hm.put(kv._1,kv._2(row))
     }
+    */
+    println
     nextLine = pass1.readNext()
 }
 
+/*
 pumaMap.foreach { kv =>
   println(kv._1 +","+ (kv._2 map))
 }
+*/
 
 ////////////////////////////////////////////////////////////////////////////////*}}}*/
 // vim: set fdm=marker:
