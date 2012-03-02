@@ -2,8 +2,7 @@ require('json2ify')
 require('es5-shimify')
 require('jqueryify')
 
-require 'lib/d3.min'
-require 'lib/d3.csv.min'
+require 'lib/d3.v2'
 
 require('spine')
 require('spine/lib/local')
