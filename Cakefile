@@ -51,7 +51,7 @@ task 'testold', 'Build some data with d3', ->
   })
 ###
 
-task 'testold', 'Build some data with d3', ->
+task 'd3', 'Do something with d3', ->
   jsdom = require('jsdom')
   jsdom.env({
     html: 'public/sandbox.html'

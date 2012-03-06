@@ -1,9 +1,9 @@
-#subsamples <- read.csv("s.csv")
+#samples <- read.csv("s.csv")
 samples <- read.csv("public/csv_pnc/ss09pnc.csv")
 
 # this groups everything out, but it includes rows that are empty in the PINCP section. If all the PINCP sections are zero, then I want
 # to filter them out.
-groups <- with(subsamples, ftable(
+groups <- with(samples, ftable(
   SEX, 
   ANC, 
   cut(AGEP,breaks=c(0,18,25,30,35,40,50,60,Inf)),
