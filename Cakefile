@@ -12,25 +12,15 @@ task 'copyDependencies', 'For whatever reason spine sucks at using NPM modules -
   exec 'npm install .', execHandler
   exec 'cp node_modules/d3/d3.v2.js app/lib', execHandler
 
+task 'test','Run unit tests', (o) ->
+  exec 'NODE_PATH="app" ./node_modules/.bin/jasmine-node --coffee --matchall test/specs', execHandler
+
+###
 task 'data1', 'Build some data with d3', ->
   d3 = require('./app/lib/d3.min')
   console.log "d3 version = "+ d3.version
 
 task 'data2', 'Build some data with d3', ->
-  ###
-  jsdom = require('jsdom')
-  jsdom.env({
-    html: '<html><body></body></html>'
-    src: [ fs.readFileSync('public/application.js') ]
-    done: (errors,window) ->
-      require = window.require
-      d3 = require('lib/d3.min')
-      console.log "d3 version = "+ d3.version
-      console.log "d3 #{k} = #{v}" for k,v of d3
-      #d3.select('nothing')
-      console.log JSON.stringify(d3)
-  })
-  ###
   hem = spawn 'hem', ['server']
   phantom = require('phantom')
   phantom.create (ph) ->
@@ -42,3 +32,30 @@ task 'data2', 'Build some data with d3', ->
           console.log("d3 version = "+ d3.version)
           ph.exit()
           hem.kill()
+
+task 'testold', 'Build some data with d3', ->
+  jsdom = require('jsdom')
+  jsdom.defaultDocumentFeatures = {
+    FetchExternalResources   : ['script'],
+    ProcessExternalResources : true,
+    MutationEvents           : true,
+    QuerySelector            : true
+  }
+  jsdom.env({
+    html: 'test/public/index.html'
+    scripts: [ fs.readFileSync('node_modules/jqueryify/index.js') ]
+    done: (errors,window) ->
+      console.log "looking..."
+      #console.log "Suites: "+ window.$('.runner .description').text()
+      console.log "Suites: "+ window.$('*').text()
+  })
+###
+
+task 'testold', 'Build some data with d3', ->
+  jsdom = require('jsdom')
+  jsdom.env({
+    html: 'public/sandbox.html'
+    done: (errors,window) ->
+      require('d3/index.js')
+      console.log("d3 version = "+ d3.version)
+  })

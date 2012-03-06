@@ -1,13 +1,5 @@
-subsamples <- read.csv("s.csv")
-#samples <- read.csv("public/csv_pnc/ss09pnc.csv")
-
-#library(plyr)
-#ddply(subsamples, 'ANC', function(x) c(count=nrow(x), mean=mean(x$PINCP)))
-
-# buckets
-#ddply(subsamples, c('SEX','ANC','AGEP','SCHL'), function(x) c(count=nrow(x),sum=sum(x$PINCP)),.progress='text')
-#with(subsamples, table(SEX, cut(AGEP,breaks = c(0,10,30,50,100))))
-#with(subsamples, ftable(SEX, ANC, AGEP, SCHL, cut(PINCP,breaks = seq(0,100,by=10)*1000)))
+#subsamples <- read.csv("s.csv")
+samples <- read.csv("public/csv_pnc/ss09pnc.csv")
 
 # this groups everything out, but it includes rows that are empty in the PINCP section. If all the PINCP sections are zero, then I want
 # to filter them out.
