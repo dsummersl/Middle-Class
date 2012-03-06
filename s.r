@@ -1,9 +1,23 @@
-#samples <- read.csv("s.csv")
-samples <- read.csv("public/csv_pnc/ss09pnc.csv")
-subsamples <- samples[c("SEX","AGEP","ANC","SCHL","PINCP")]
-# sum up the remaining income:
-#grouped <- aggregate(subsamples,list(sex=subsamples[,"SEX"],age=subsamples[,"AGEP"],ancestry=subsamples[,"ANC"],schooling=subsamples[,"SCHL"]),sum)
-# just count the number that match the pattern:
-grouped <- aggregate(subsamples,list(sex=subsamples[,"SEX"],age=subsamples[,"AGEP"],ancestry=subsamples[,"ANC"],schooling=subsamples[,"SCHL"],less10=subsamples[,"PINCP"] < 10000,greater10=subsamples[,"PINCP"] >= 10000),length)
-#summary(grouped)
-grouped
+subsamples <- read.csv("s.csv")
+#samples <- read.csv("public/csv_pnc/ss09pnc.csv")
+
+#library(plyr)
+#ddply(subsamples, 'ANC', function(x) c(count=nrow(x), mean=mean(x$PINCP)))
+
+# buckets
+#ddply(subsamples, c('SEX','ANC','AGEP','SCHL'), function(x) c(count=nrow(x),sum=sum(x$PINCP)),.progress='text')
+#with(subsamples, table(SEX, cut(AGEP,breaks = c(0,10,30,50,100))))
+#with(subsamples, ftable(SEX, ANC, AGEP, SCHL, cut(PINCP,breaks = seq(0,100,by=10)*1000)))
+
+# this groups everything out, but it includes rows that are empty in the PINCP section. If all the PINCP sections are zero, then I want
+# to filter them out.
+groups <- with(subsamples, ftable(
+  SEX, 
+  ANC, 
+  cut(AGEP,breaks=c(0,18,25,30,35,40,50,60,Inf)),
+  cut(SCHL,breaks=c(1,12,Inf),labels=c('HS','College')),
+  cut(PINCP,breaks=c(seq(0,10,by=2)*10000,Inf))
+))
+data <- as.data.frame(groups)
+data <- subset(data,Freq > 0) # exclude anything that doesn't actually have any values
+write.csv(data,file="out.csv",row.names=FALSE)
