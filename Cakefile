@@ -15,6 +15,10 @@ task 'copyDependencies', 'For whatever reason spine sucks at using NPM modules -
 task 'test','Run unit tests', (o) ->
   exec 'NODE_PATH="app" ./node_modules/.bin/jasmine-node --coffee --matchall test/specs', execHandler
 
+task 'make1percent', 'build an svg of super-PUMAs', ->
+  exec 'kartograph svg kartograph/1percent.yaml', execHandler
+  exec 'cp tmp.svg 1percent.svg', execHandler
+
 ###
 task 'data1', 'Build some data with d3', ->
   d3 = require('./app/lib/d3.min')
