@@ -264,3 +264,5 @@ layers:
 bounds:
    mode: bbox
    data: [-125,25,-68,55]
+export:
+  round: 1
