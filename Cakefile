@@ -16,7 +16,7 @@ task 'test','Run unit tests', (o) ->
   exec 'NODE_PATH="app" ./node_modules/.bin/jasmine-node --coffee --matchall test/specs', execHandler
 
 task 'make1percent', 'build an svg of super-PUMAs', ->
-  exec 'kartograph svg kartograph/1percent.yaml -o 1percent.svg', execHandler
+  exec 'kartograph svg kartograph/1percent.yaml; mv tmp.svg 1percent.svg', execHandler
 
 task 'make5percent', 'build an svg of PUMAs', ->
   # Before you can do this you need to download the actual
@@ -26,7 +26,7 @@ task 'make5percent', 'build an svg of PUMAs', ->
   # sh ../bin/get5percent.sh
   # for i in *.zip; do unzip $i; done
   # cd ..
-  exec 'kartograph svg kartograph/5percent.yaml; cp tmp.svg 5percent.svg', execHandler
+  exec 'kartograph svg kartograph/5percent.yaml; mv tmp.svg 5percent.svg', execHandler
 
 ###
 task 'data1', 'Build some data with d3', ->
