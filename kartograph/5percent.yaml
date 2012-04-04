@@ -1,56 +1,266 @@
+# See this https://github.com/kartograph/kartograph.py/wiki/API
+# I need to store some attributes for each layer
 layers:
--  src: 5percent/p501_d00.shp
--  src: 5percent/p502_d00.shp
--  src: 5percent/p504_d00.shp
--  src: 5percent/p505_d00.shp
--  src: 5percent/p506_d00.shp
--  src: 5percent/p508_d00.shp
--  src: 5percent/p509_d00.shp
--  src: 5percent/p510_d00.shp
--  src: 5percent/p511_d00.shp
--  src: 5percent/p512_d00.shp
--  src: 5percent/p513_d00.shp
--  src: 5percent/p515_d00.shp
--  src: 5percent/p516_d00.shp
--  src: 5percent/p517_d00.shp
--  src: 5percent/p518_d00.shp
--  src: 5percent/p519_d00.shp
--  src: 5percent/p520_d00.shp
--  src: 5percent/p521_d00.shp
--  src: 5percent/p522_d00.shp
--  src: 5percent/p523_d00.shp
--  src: 5percent/p524_d00.shp
--  src: 5percent/p525_d00.shp
--  src: 5percent/p526_d00.shp
--  src: 5percent/p527_d00.shp
--  src: 5percent/p528_d00.shp
--  src: 5percent/p529_d00.shp
--  src: 5percent/p530_d00.shp
--  src: 5percent/p531_d00.shp
--  src: 5percent/p532_d00.shp
--  src: 5percent/p533_d00.shp
--  src: 5percent/p534_d00.shp
--  src: 5percent/p535_d00.shp
--  src: 5percent/p536_d00.shp
--  src: 5percent/p537_d00.shp
--  src: 5percent/p538_d00.shp
--  src: 5percent/p539_d00.shp
--  src: 5percent/p540_d00.shp
--  src: 5percent/p541_d00.shp
--  src: 5percent/p542_d00.shp
--  src: 5percent/p544_d00.shp
--  src: 5percent/p545_d00.shp
--  src: 5percent/p546_d00.shp
--  src: 5percent/p547_d00.shp
--  src: 5percent/p548_d00.shp
--  src: 5percent/p549_d00.shp
--  src: 5percent/p550_d00.shp
--  src: 5percent/p551_d00.shp
--  src: 5percent/p553_d00.shp
--  src: 5percent/p554_d00.shp
--  src: 5percent/p555_d00.shp
--  src: 5percent/p556_d00.shp
--  src: 5percent/p572_d00.shp
+-  
+  src: 5percent/p501_d00.shp
+  id: 'p501'
+  attributes:
+  - PUMA5
+-  
+  src: 5percent/p502_d00.shp
+  id: 'p502'
+  attributes:
+  - PUMA5
+-  
+  src: 5percent/p504_d00.shp
+  id: 'p504'
+  attributes:
+  - PUMA5
+-  
+  src: 5percent/p505_d00.shp
+  id: 'p505'
+  attributes:
+  - PUMA5
+-  
+  src: 5percent/p506_d00.shp
+  id: 'p506'
+  attributes:
+  - PUMA5
+-  
+  src: 5percent/p508_d00.shp
+  id: 'p508'
+  attributes:
+  - PUMA5
+-  
+  src: 5percent/p509_d00.shp
+  id: 'p509'
+  attributes:
+  - PUMA5
+-  
+  src: 5percent/p510_d00.shp
+  id: 'p510'
+  attributes:
+  - PUMA5
+-  
+  src: 5percent/p511_d00.shp
+  id: 'p511'
+  attributes:
+  - PUMA5
+-  
+  src: 5percent/p512_d00.shp
+  id: 'p512'
+  attributes:
+  - PUMA5
+-  
+  src: 5percent/p513_d00.shp
+  id: 'p513'
+  attributes:
+  - PUMA5
+-  
+  src: 5percent/p515_d00.shp
+  id: 'p515'
+  attributes:
+  - PUMA5
+-  
+  src: 5percent/p516_d00.shp
+  id: 'p516'
+  attributes:
+  - PUMA5
+-  
+  src: 5percent/p517_d00.shp
+  id: 'p517'
+  attributes:
+  - PUMA5
+-  
+  src: 5percent/p518_d00.shp
+  id: 'p518'
+  attributes:
+  - PUMA5
+-  
+  src: 5percent/p519_d00.shp
+  id: 'p519'
+  attributes:
+  - PUMA5
+-  
+  src: 5percent/p520_d00.shp
+  id: 'p520'
+  attributes:
+  - PUMA5
+-  
+  src: 5percent/p521_d00.shp
+  id: 'p521'
+  attributes:
+  - PUMA5
+-  
+  src: 5percent/p522_d00.shp
+  id: 'p522'
+  attributes:
+  - PUMA5
+-  
+  src: 5percent/p523_d00.shp
+  id: 'p523'
+  attributes:
+  - PUMA5
+-  
+  src: 5percent/p524_d00.shp
+  id: 'p524'
+  attributes:
+  - PUMA5
+-  
+  src: 5percent/p525_d00.shp
+  id: 'p525'
+  attributes:
+  - PUMA5
+-  
+  src: 5percent/p526_d00.shp
+  id: 'p526'
+  attributes:
+  - PUMA5
+-  
+  src: 5percent/p527_d00.shp
+  id: 'p527'
+  attributes:
+  - PUMA5
+-  
+  src: 5percent/p528_d00.shp
+  id: 'p528'
+  attributes:
+  - PUMA5
+-  
+  src: 5percent/p529_d00.shp
+  id: 'p529'
+  attributes:
+  - PUMA5
+-  
+  src: 5percent/p530_d00.shp
+  id: 'p530'
+  attributes:
+  - PUMA5
+-  
+  src: 5percent/p531_d00.shp
+  id: 'p531'
+  attributes:
+  - PUMA5
+-  
+  src: 5percent/p532_d00.shp
+  id: 'p532'
+  attributes:
+  - PUMA5
+-  
+  src: 5percent/p533_d00.shp
+  id: 'p533'
+  attributes:
+  - PUMA5
+-  
+  src: 5percent/p534_d00.shp
+  id: 'p534'
+  attributes:
+  - PUMA5
+-  
+  src: 5percent/p535_d00.shp
+  id: 'p535'
+  attributes:
+  - PUMA5
+-  
+  src: 5percent/p536_d00.shp
+  id: 'p536'
+  attributes:
+  - PUMA5
+-  
+  src: 5percent/p537_d00.shp
+  id: 'p537'
+  attributes:
+  - PUMA5
+-  
+  src: 5percent/p538_d00.shp
+  id: 'p538'
+  attributes:
+  - PUMA5
+-  
+  src: 5percent/p539_d00.shp
+  id: 'p539'
+  attributes:
+  - PUMA5
+-  
+  src: 5percent/p540_d00.shp
+  id: 'p540'
+  attributes:
+  - PUMA5
+-  
+  src: 5percent/p541_d00.shp
+  id: 'p541'
+  attributes:
+  - PUMA5
+-  
+  src: 5percent/p542_d00.shp
+  id: 'p542'
+  attributes:
+  - PUMA5
+-  
+  src: 5percent/p544_d00.shp
+  id: 'p544'
+  attributes:
+  - PUMA5
+-  
+  src: 5percent/p545_d00.shp
+  id: 'p545'
+  attributes:
+  - PUMA5
+-  
+  src: 5percent/p546_d00.shp
+  id: 'p546'
+  attributes:
+  - PUMA5
+-  
+  src: 5percent/p547_d00.shp
+  id: 'p547'
+  attributes:
+  - PUMA5
+-  
+  src: 5percent/p548_d00.shp
+  id: 'p548'
+  attributes:
+  - PUMA5
+-  
+  src: 5percent/p549_d00.shp
+  id: 'p549'
+  attributes:
+  - PUMA5
+-  
+  src: 5percent/p550_d00.shp
+  id: 'p550'
+  attributes:
+  - PUMA5
+-  
+  src: 5percent/p551_d00.shp
+  id: 'p551'
+  attributes:
+  - PUMA5
+-  
+  src: 5percent/p553_d00.shp
+  id: 'p553'
+  attributes:
+  - PUMA5
+-  
+  src: 5percent/p554_d00.shp
+  id: 'p554'
+  attributes:
+  - PUMA5
+-  
+  src: 5percent/p555_d00.shp
+  id: 'p555'
+  attributes:
+  - PUMA5
+-  
+  src: 5percent/p556_d00.shp
+  id: 'p556'
+  attributes:
+  - PUMA5
+-  
+  src: 5percent/p572_d00.shp
+  id: 'p572'
+  attributes:
+  - PUMA5
 bounds:
    mode: bbox
    data: [-125,25,-68,55]

@@ -1,56 +1,264 @@
 layers:
--  src: 1percent/p101_d00.shp
--  src: 1percent/p102_d00.shp
--  src: 1percent/p104_d00.shp
--  src: 1percent/p105_d00.shp
--  src: 1percent/p106_d00.shp
--  src: 1percent/p108_d00.shp
--  src: 1percent/p109_d00.shp
--  src: 1percent/p110_d00.shp
--  src: 1percent/p111_d00.shp
--  src: 1percent/p112_d00.shp
--  src: 1percent/p113_d00.shp
--  src: 1percent/p115_d00.shp
--  src: 1percent/p116_d00.shp
--  src: 1percent/p117_d00.shp
--  src: 1percent/p118_d00.shp
--  src: 1percent/p119_d00.shp
--  src: 1percent/p120_d00.shp
--  src: 1percent/p121_d00.shp
--  src: 1percent/p122_d00.shp
--  src: 1percent/p123_d00.shp
--  src: 1percent/p124_d00.shp
--  src: 1percent/p125_d00.shp
--  src: 1percent/p126_d00.shp
--  src: 1percent/p127_d00.shp
--  src: 1percent/p128_d00.shp
--  src: 1percent/p129_d00.shp
--  src: 1percent/p130_d00.shp
--  src: 1percent/p131_d00.shp
--  src: 1percent/p132_d00.shp
--  src: 1percent/p133_d00.shp
--  src: 1percent/p134_d00.shp
--  src: 1percent/p135_d00.shp
--  src: 1percent/p136_d00.shp
--  src: 1percent/p137_d00.shp
--  src: 1percent/p138_d00.shp
--  src: 1percent/p139_d00.shp
--  src: 1percent/p140_d00.shp
--  src: 1percent/p141_d00.shp
--  src: 1percent/p142_d00.shp
--  src: 1percent/p144_d00.shp
--  src: 1percent/p145_d00.shp
--  src: 1percent/p146_d00.shp
--  src: 1percent/p147_d00.shp
--  src: 1percent/p148_d00.shp
--  src: 1percent/p149_d00.shp
--  src: 1percent/p150_d00.shp
--  src: 1percent/p151_d00.shp
--  src: 1percent/p153_d00.shp
--  src: 1percent/p154_d00.shp
--  src: 1percent/p155_d00.shp
--  src: 1percent/p156_d00.shp
--  src: 1percent/p172_d00.shp
+-
+  src: 1percent/p101_d00.shp
+  id: 'p101'
+  attributes:
+  - PUMA1
+-
+  src: 1percent/p102_d00.shp
+  id: 'p102'
+  attributes:
+  - PUMA1
+-
+  src: 1percent/p104_d00.shp
+  id: 'p104'
+  attributes:
+  - PUMA1
+-
+  src: 1percent/p105_d00.shp
+  id: 'p105'
+  attributes:
+  - PUMA1
+-
+  src: 1percent/p106_d00.shp
+  id: 'p106'
+  attributes:
+  - PUMA1
+-
+  src: 1percent/p108_d00.shp
+  id: 'p108'
+  attributes:
+  - PUMA1
+-
+  src: 1percent/p109_d00.shp
+  id: 'p109'
+  attributes:
+  - PUMA1
+-
+  src: 1percent/p110_d00.shp
+  id: 'p110'
+  attributes:
+  - PUMA1
+-
+  src: 1percent/p111_d00.shp
+  id: 'p111'
+  attributes:
+  - PUMA1
+-
+  src: 1percent/p112_d00.shp
+  id: 'p112'
+  attributes:
+  - PUMA1
+-
+  src: 1percent/p113_d00.shp
+  id: 'p113'
+  attributes:
+  - PUMA1
+-
+  src: 1percent/p115_d00.shp
+  id: 'p115'
+  attributes:
+  - PUMA1
+-
+  src: 1percent/p116_d00.shp
+  id: 'p116'
+  attributes:
+  - PUMA1
+-
+  src: 1percent/p117_d00.shp
+  id: 'p117'
+  attributes:
+  - PUMA1
+-
+  src: 1percent/p118_d00.shp
+  id: 'p118'
+  attributes:
+  - PUMA1
+-
+  src: 1percent/p119_d00.shp
+  id: 'p119'
+  attributes:
+  - PUMA1
+-
+  src: 1percent/p120_d00.shp
+  id: 'p120'
+  attributes:
+  - PUMA1
+-
+  src: 1percent/p121_d00.shp
+  id: 'p121'
+  attributes:
+  - PUMA1
+-
+  src: 1percent/p122_d00.shp
+  id: 'p122'
+  attributes:
+  - PUMA1
+-
+  src: 1percent/p123_d00.shp
+  id: 'p123'
+  attributes:
+  - PUMA1
+-
+  src: 1percent/p124_d00.shp
+  id: 'p124'
+  attributes:
+  - PUMA1
+-
+  src: 1percent/p125_d00.shp
+  id: 'p125'
+  attributes:
+  - PUMA1
+-
+  src: 1percent/p126_d00.shp
+  id: 'p126'
+  attributes:
+  - PUMA1
+-
+  src: 1percent/p127_d00.shp
+  id: 'p127'
+  attributes:
+  - PUMA1
+-
+  src: 1percent/p128_d00.shp
+  id: 'p128'
+  attributes:
+  - PUMA1
+-
+  src: 1percent/p129_d00.shp
+  id: 'p129'
+  attributes:
+  - PUMA1
+-
+  src: 1percent/p130_d00.shp
+  id: 'p130'
+  attributes:
+  - PUMA1
+-
+  src: 1percent/p131_d00.shp
+  id: 'p131'
+  attributes:
+  - PUMA1
+-
+  src: 1percent/p132_d00.shp
+  id: 'p132'
+  attributes:
+  - PUMA1
+-
+  src: 1percent/p133_d00.shp
+  id: 'p133'
+  attributes:
+  - PUMA1
+-
+  src: 1percent/p134_d00.shp
+  id: 'p134'
+  attributes:
+  - PUMA1
+-
+  src: 1percent/p135_d00.shp
+  id: 'p135'
+  attributes:
+  - PUMA1
+-
+  src: 1percent/p136_d00.shp
+  id: 'p136'
+  attributes:
+  - PUMA1
+-
+  src: 1percent/p137_d00.shp
+  id: 'p137'
+  attributes:
+  - PUMA1
+-
+  src: 1percent/p138_d00.shp
+  id: 'p138'
+  attributes:
+  - PUMA1
+-
+  src: 1percent/p139_d00.shp
+  id: 'p139'
+  attributes:
+  - PUMA1
+-
+  src: 1percent/p140_d00.shp
+  id: 'p140'
+  attributes:
+  - PUMA1
+-
+  src: 1percent/p141_d00.shp
+  id: 'p141'
+  attributes:
+  - PUMA1
+-
+  src: 1percent/p142_d00.shp
+  id: 'p142'
+  attributes:
+  - PUMA1
+-
+  src: 1percent/p144_d00.shp
+  id: 'p144'
+  attributes:
+  - PUMA1
+-
+  src: 1percent/p145_d00.shp
+  id: 'p145'
+  attributes:
+  - PUMA1
+-
+  src: 1percent/p146_d00.shp
+  id: 'p146'
+  attributes:
+  - PUMA1
+-
+  src: 1percent/p147_d00.shp
+  id: 'p147'
+  attributes:
+  - PUMA1
+-
+  src: 1percent/p148_d00.shp
+  id: 'p148'
+  attributes:
+  - PUMA1
+-
+  src: 1percent/p149_d00.shp
+  id: 'p149'
+  attributes:
+  - PUMA1
+-
+  src: 1percent/p150_d00.shp
+  id: 'p150'
+  attributes:
+  - PUMA1
+-
+  src: 1percent/p151_d00.shp
+  id: 'p151'
+  attributes:
+  - PUMA1
+-
+  src: 1percent/p153_d00.shp
+  id: 'p153'
+  attributes:
+  - PUMA1
+-
+  src: 1percent/p154_d00.shp
+  id: 'p154'
+  attributes:
+  - PUMA1
+-
+  src: 1percent/p155_d00.shp
+  id: 'p155'
+  attributes:
+  - PUMA1
+-
+  src: 1percent/p156_d00.shp
+  id: 'p156'
+  attributes:
+  - PUMA1
+-
+  src: 1percent/p172_d00.shp
+  id: 'p172'
+  attributes:
+  - PUMA1
 bounds:
    mode: bbox
    data: [-125,25,-68,55]
