@@ -19,6 +19,16 @@ task 'make1percent', 'build an svg of super-PUMAs', ->
   exec 'kartograph svg kartograph/1percent.yaml', execHandler
   exec 'cp tmp.svg 1percent.svg', execHandler
 
+task 'make5percent', 'build an svg of PUMAs', ->
+  # Before you can do this you need to download the actual
+  # shape files form the census. Do this:
+  # mkdir 5percent
+  # cd 5percent
+  # sh ../bin/get5percent.sh
+  # for i in *.zip; do unzip $i; done
+  # cd ..
+  exec 'kartograph svg kartograph/5percent.yaml; cp tmp.svg 5percent.svg', execHandler
+
 ###
 task 'data1', 'Build some data with d3', ->
   d3 = require('./app/lib/d3.min')

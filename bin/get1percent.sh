@@ -1,5 +1,7 @@
 #!/bin/sh
 
+# fetch all the shape files from the 2000 census for the 1% PUMAs (aka, Super PUMAs):
+
 wget http://www.census.gov/geo/cob/bdy/pu/p100shp/p101_d00_shp.zip
 wget http://www.census.gov/geo/cob/bdy/pu/p100shp/p102_d00_shp.zip
 wget http://www.census.gov/geo/cob/bdy/pu/p100shp/p104_d00_shp.zip

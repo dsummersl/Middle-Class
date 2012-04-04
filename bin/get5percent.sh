@@ -1,0 +1,56 @@
+#!/bin/sh
+
+# fetch all the shape files from the 2000 census for the 5% PUMAs:
+
+wget http://www.census.gov/geo/cob/bdy/pu/p500shp/p501_d00_shp.zip
+wget http://www.census.gov/geo/cob/bdy/pu/p500shp/p502_d00_shp.zip
+wget http://www.census.gov/geo/cob/bdy/pu/p500shp/p504_d00_shp.zip
+wget http://www.census.gov/geo/cob/bdy/pu/p500shp/p505_d00_shp.zip
+wget http://www.census.gov/geo/cob/bdy/pu/p500shp/p506_d00_shp.zip
+wget http://www.census.gov/geo/cob/bdy/pu/p500shp/p508_d00_shp.zip
+wget http://www.census.gov/geo/cob/bdy/pu/p500shp/p509_d00_shp.zip
+wget http://www.census.gov/geo/cob/bdy/pu/p500shp/p510_d00_shp.zip
+wget http://www.census.gov/geo/cob/bdy/pu/p500shp/p511_d00_shp.zip
+wget http://www.census.gov/geo/cob/bdy/pu/p500shp/p512_d00_shp.zip
+wget http://www.census.gov/geo/cob/bdy/pu/p500shp/p513_d00_shp.zip
+wget http://www.census.gov/geo/cob/bdy/pu/p500shp/p515_d00_shp.zip
+wget http://www.census.gov/geo/cob/bdy/pu/p500shp/p516_d00_shp.zip
+wget http://www.census.gov/geo/cob/bdy/pu/p500shp/p517_d00_shp.zip
+wget http://www.census.gov/geo/cob/bdy/pu/p500shp/p518_d00_shp.zip
+wget http://www.census.gov/geo/cob/bdy/pu/p500shp/p519_d00_shp.zip
+wget http://www.census.gov/geo/cob/bdy/pu/p500shp/p520_d00_shp.zip
+wget http://www.census.gov/geo/cob/bdy/pu/p500shp/p521_d00_shp.zip
+wget http://www.census.gov/geo/cob/bdy/pu/p500shp/p522_d00_shp.zip
+wget http://www.census.gov/geo/cob/bdy/pu/p500shp/p523_d00_shp.zip
+wget http://www.census.gov/geo/cob/bdy/pu/p500shp/p524_d00_shp.zip
+wget http://www.census.gov/geo/cob/bdy/pu/p500shp/p525_d00_shp.zip
+wget http://www.census.gov/geo/cob/bdy/pu/p500shp/p526_d00_shp.zip
+wget http://www.census.gov/geo/cob/bdy/pu/p500shp/p527_d00_shp.zip
+wget http://www.census.gov/geo/cob/bdy/pu/p500shp/p528_d00_shp.zip
+wget http://www.census.gov/geo/cob/bdy/pu/p500shp/p529_d00_shp.zip
+wget http://www.census.gov/geo/cob/bdy/pu/p500shp/p530_d00_shp.zip
+wget http://www.census.gov/geo/cob/bdy/pu/p500shp/p531_d00_shp.zip
+wget http://www.census.gov/geo/cob/bdy/pu/p500shp/p532_d00_shp.zip
+wget http://www.census.gov/geo/cob/bdy/pu/p500shp/p533_d00_shp.zip
+wget http://www.census.gov/geo/cob/bdy/pu/p500shp/p534_d00_shp.zip
+wget http://www.census.gov/geo/cob/bdy/pu/p500shp/p535_d00_shp.zip
+wget http://www.census.gov/geo/cob/bdy/pu/p500shp/p536_d00_shp.zip
+wget http://www.census.gov/geo/cob/bdy/pu/p500shp/p537_d00_shp.zip
+wget http://www.census.gov/geo/cob/bdy/pu/p500shp/p538_d00_shp.zip
+wget http://www.census.gov/geo/cob/bdy/pu/p500shp/p539_d00_shp.zip
+wget http://www.census.gov/geo/cob/bdy/pu/p500shp/p540_d00_shp.zip
+wget http://www.census.gov/geo/cob/bdy/pu/p500shp/p541_d00_shp.zip
+wget http://www.census.gov/geo/cob/bdy/pu/p500shp/p542_d00_shp.zip
+wget http://www.census.gov/geo/cob/bdy/pu/p500shp/p544_d00_shp.zip
+wget http://www.census.gov/geo/cob/bdy/pu/p500shp/p545_d00_shp.zip
+wget http://www.census.gov/geo/cob/bdy/pu/p500shp/p546_d00_shp.zip
+wget http://www.census.gov/geo/cob/bdy/pu/p500shp/p547_d00_shp.zip
+wget http://www.census.gov/geo/cob/bdy/pu/p500shp/p548_d00_shp.zip
+wget http://www.census.gov/geo/cob/bdy/pu/p500shp/p549_d00_shp.zip
+wget http://www.census.gov/geo/cob/bdy/pu/p500shp/p550_d00_shp.zip
+wget http://www.census.gov/geo/cob/bdy/pu/p500shp/p551_d00_shp.zip
+wget http://www.census.gov/geo/cob/bdy/pu/p500shp/p553_d00_shp.zip
+wget http://www.census.gov/geo/cob/bdy/pu/p500shp/p554_d00_shp.zip
+wget http://www.census.gov/geo/cob/bdy/pu/p500shp/p555_d00_shp.zip
+wget http://www.census.gov/geo/cob/bdy/pu/p500shp/p556_d00_shp.zip
+wget http://www.census.gov/geo/cob/bdy/pu/p500shp/p572_d00_shp.zip
