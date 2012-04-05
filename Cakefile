@@ -12,10 +12,7 @@ task 'copyDependencies', 'For whatever reason spine sucks at using NPM modules -
   exec 'npm install .', execHandler
   exec 'cp node_modules/d3/d3.v2.js app/lib', execHandler
 
-task 'make1percent', 'build an svg of super-PUMAs', ->
-  exec 'kartograph svg kartograph/1percent.yaml; mv tmp.svg 1percent.svg; mv 1percent.svg public/svg', execHandler
-
-task 'make5percent', 'build an svg of PUMAs', ->
+task 'map1', 'build commands to build map', ->
   # Before you can do this you need to download the actual
   # shape files form the census. Do this:
   # mkdir 5percent
@@ -23,7 +20,20 @@ task 'make5percent', 'build an svg of PUMAs', ->
   # sh ../bin/get5percent.sh
   # for i in *.zip; do unzip $i; done
   # cd ..
-  exec 'kartograph svg kartograph/5percent.yaml; mv tmp.svg 5percent.svg; mv 5percent.svg public/svg', execHandler
+  dir = '1percent'
+  fs.readdir dir, (err,list) =>
+    cmds = []
+    first = false
+    for i in list
+      if /shp$/.test(i)
+        if !first
+          first = true
+          cmds.push "ogr2ogr combined.shp #{dir}/#{i}"
+        else
+          cmds.push "ogr2ogr -update -append combined.shp #{dir}/#{i} -nln combined"
+    console.log i for i in cmds
+task 'map2', 'convert map to geojson', ->
+  exec 'ogr2ogr -f "GeoJSON" combined.json combined.shp', execHandler
 
 ###
 task 'data1', 'Build some data with d3', ->
