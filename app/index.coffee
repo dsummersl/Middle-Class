@@ -5,12 +5,17 @@ Spine = require('spine')
 class App extends Spine.Controller
   constructor: ->
     super
-    d3.xml "svg/1percent.svg", "image/svg+xml", (xml)=>
-      console.log "xml = #{xml.documentElement}"
-      importNode = document.importNode(xml.documentElement, true)
-      #d3.select('#map').node().appendChild(importNode)
-      console.log "Map loaded"
-      #d3.select('#mainmap svg').attr('fill',Options.nodatacountries)
+    d3.json "one.json", (json)=>
+      path = d3.geo.path()
+      svg = d3.select('#map').append('svg')
+      parts = svg.append('g')
+        .attr('id', 'parts')
+        .attr('class','Blues')
+      parts.selectAll('path')
+        .data(json.features)
+        .enter()
+        .append('path')
+        .attr('d',path)
 
 module.exports = App
     
