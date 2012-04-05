@@ -12,9 +12,6 @@ task 'copyDependencies', 'For whatever reason spine sucks at using NPM modules -
   exec 'npm install .', execHandler
   exec 'cp node_modules/d3/d3.v2.js app/lib', execHandler
 
-task 'test','Run unit tests', (o) ->
-  exec 'NODE_PATH="app" ./node_modules/.bin/jasmine-node --coffee --matchall test/specs', execHandler
-
 task 'make1percent', 'build an svg of super-PUMAs', ->
   exec 'kartograph svg kartograph/1percent.yaml; mv tmp.svg 1percent.svg; mv 1percent.svg public/svg', execHandler
 
@@ -63,12 +60,3 @@ task 'testold', 'Build some data with d3', ->
       console.log "Suites: "+ window.$('*').text()
   })
 ###
-
-task 'd3', 'Do something with d3', ->
-  jsdom = require('jsdom')
-  jsdom.env({
-    html: 'public/sandbox.html'
-    done: (errors,window) ->
-      require('d3/index.js')
-      console.log("d3 version = "+ d3.version)
-  })

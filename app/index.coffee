@@ -5,9 +5,12 @@ Spine = require('spine')
 class App extends Spine.Controller
   constructor: ->
     super
-    #console.log "d3 val #{k} = #{v}" for k,v of d3
-    #d3.select('nothing')
-    console.log "version = #{d3.version}"
+    d3.xml "svg/1percent.svg", "image/svg+xml", (xml)=>
+      console.log "xml = #{xml.documentElement}"
+      importNode = document.importNode(xml.documentElement, true)
+      #d3.select('#map').node().appendChild(importNode)
+      console.log "Map loaded"
+      #d3.select('#mainmap svg').attr('fill',Options.nodatacountries)
 
 module.exports = App
     
