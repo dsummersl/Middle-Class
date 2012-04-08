@@ -12,7 +12,12 @@ task 'copyDependencies', 'For whatever reason spine sucks at using NPM modules -
   exec 'npm install .', execHandler
   exec 'cp node_modules/d3/d3.v2.js app/lib', execHandler
 
-task 'map1', 'build commands to build map', ->
+option '-t','--type [TYPE]', 'Type of map to generate (1percent = SPUMA, 5percent = PUMA)'
+
+task 'mapcommands', 'build commands to build map', (options) ->
+  if options.type not in ['1percent','5percent']
+    console.log "You need to specify a type: 1percent or 5percent"
+    return
   # Before you can do this you need to download the actual
   # shape files form the census. Do this:
   # mkdir 5percent
@@ -20,7 +25,7 @@ task 'map1', 'build commands to build map', ->
   # sh ../bin/get5percent.sh
   # for i in *.zip; do unzip $i; done
   # cd ..
-  dir = '1percent'
+  dir = options.type
   fs.readdir dir, (err,list) =>
     cmds = []
     first = false
@@ -28,12 +33,13 @@ task 'map1', 'build commands to build map', ->
       if /shp$/.test(i)
         if !first
           first = true
-          cmds.push "ogr2ogr combined.shp #{dir}/#{i}"
+          cmds.push "ogr2ogr #{dir}-combined.shp #{dir}/#{i}"
         else
-          cmds.push "ogr2ogr -update -append combined.shp #{dir}/#{i} -nln combined"
+          cmds.push "ogr2ogr -update -append #{dir}-combined.shp #{dir}/#{i} -nln #{dir}-combined"
     console.log i for i in cmds
-task 'map2', 'convert map to geojson', ->
-  exec 'ogr2ogr -f "GeoJSON" combined.json combined.shp', execHandler
+    console.log "ogr2ogr -f 'GeoJSON' #{dir}-combined.json #{dir}-combined.shp"
+    console.log "rm #{dir}-combined.shp"
+    console.log "mv #{dir}-combined.json public/svg"
 
 ###
 task 'data1', 'Build some data with d3', ->
@@ -70,3 +76,41 @@ task 'testold', 'Build some data with d3', ->
       console.log "Suites: "+ window.$('*').text()
   })
 ###
+
+task 'd3test', '', ->
+  require 'd3/index.js'
+  puma = JSON.parse(fs.readFileSync("public/svg/5percent-combined.geojson"))
+  spuma = JSON.parse(fs.readFileSync("public/svg/1percent-combined.geojson"))
+
+  #console.log "total parts = #{json}"
+  console.log "puma = #{(f.properties.PUMA5 for f in puma.features).length}"
+  console.log "spuma = #{(f.properties.PUMA1 for f in spuma.features).length}"
+
+  try
+    console.log "a = #{d3.select('svg').length}"
+    path = d3.geo.path()
+    svg = d3.select('#adiv').append('svg')
+    pumaparts = svg.append('g')
+      .attr('id', 'pumaparts')
+      .attr('class','puma')
+    pumaparts.select('#pumaparts').selectAll('path')
+      .data(puma.features)
+      .enter()
+      .append('path')
+      .attr('d',path)
+      .call( (d) ->
+        console.log "puma does it intersect?"
+      )
+    spumaparts = svg.append('g')
+      .attr('id', 'spumaparts')
+      .attr('class','spuma')
+    spumaparts.select('#spumaparts').selectAll('path')
+      .data(spuma.features)
+      .enter()
+      .append('path')
+      .attr('d',path)
+      .call( (d) ->
+        console.log "spuma does it intersect?"
+      )
+  catch e
+    console.log "error #{e}"

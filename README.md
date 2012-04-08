@@ -8,9 +8,11 @@ An interractive viz exploring this question.
 
 Generally see the Cakefile for instructions - what isn't automated is documented therein.
 
-cake map1 > a.sh
-sh a.sh
-cake map2
+For PUMA map:
+cake -t 5percent mapcommands > a.sh ; sh a.sh
+
+For Super PUMA map:
+cake -t 1percent mapcommands > a.sh ; sh a.sh
 
 ----
 
