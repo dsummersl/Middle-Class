@@ -14,6 +14,9 @@ task 'copyDependencies', 'For whatever reason spine sucks at using NPM modules -
 
 option '-t','--type [TYPE]', 'Type of map to generate (1percent = SPUMA, 5percent = PUMA)'
 
+task 'mkdata', 'use R to convert the source CSV files', ->
+  exec 'r --no-save < bin/groupState.r ; mv out.csv public/data/nc.csv', execHandler
+
 task 'mapcommands', 'build commands to build map', (options) ->
   if options.type not in ['1percent','5percent']
     console.log "You need to specify a type: 1percent or 5percent"
