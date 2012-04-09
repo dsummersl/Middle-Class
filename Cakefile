@@ -17,6 +17,49 @@ option '-t','--type [TYPE]', 'Type of map to generate (1percent = SPUMA, 5percen
 task 'mkdata', 'use R to convert the source CSV files', ->
   exec 'r --no-save < bin/groupState.r ; mv out.csv public/data/nc.csv', execHandler
 
+task 'processdata', 'move the data into mongoose', ->
+  csv = require('ya-csv')
+  mongoose = require('mongoose')
+  db = mongoose.connect('mongodb://localhost/middleclass')
+  EntrySchema = new mongoose.Schema()
+  EntrySchema.add
+    puma: { type: String, index: true }
+    state: String
+    sex: Boolean
+    age: String
+    school: String
+    income: String
+    incomecount: String
+  Entry = mongoose.model('Entry', EntrySchema)
+
+  reader = csv.createCsvFileReader('public/data/nc.csv')
+  cnt = 0
+  reader.addListener('data', (data)=>
+    entry = new Entry
+      puma: data.PUMA
+      state: 'nc'
+      sex: data.Sex
+      age: data.Age
+      school: data.School
+      income: data.Income
+      incomecount: data.IncomeCount
+    console.log "saving #{cnt}: #{data.PUMA}"
+    cnt++
+    entry.save (err) ->
+      console.log "Error saving..." if err
+      #TODO disconnect when done...
+  )
+  ###
+  db.disconnect()
+  for r in csvfile
+    console.log "a row: #{r.PUMA}"
+
+  collection = mongoose.noSchema('census',db)
+  collection.find({}).each( (d)->
+    console.println d
+  )
+  ###
+
 task 'mapcommands', 'build commands to build map', (options) ->
   if options.type not in ['1percent','5percent']
     console.log "You need to specify a type: 1percent or 5percent"

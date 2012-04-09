@@ -5,7 +5,6 @@ Spine = require('spine')
 class App extends Spine.Controller
   constructor: ->
     super
-    d3.csv "data/nc.csv", (csv)->
     d3.json "svg/5percent-combined.geojson", (json)->
       path = d3.geo.path()
       svg = d3.select('#map').append('svg')
