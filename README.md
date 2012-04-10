@@ -7,13 +7,7 @@ An interractive viz exploring this question.
 ----
 
 Spine: brew install spine
-Mongodb: brew install mongodb
-
-Do this, once its all checked out:
-
-npm install .
-
-mongod run --config /usr/local/Cellar/mongodb/2.0.4-x86_64/mongod.conf
+Couchdb: brew install couchdb
 
 *Notes*
 ----
