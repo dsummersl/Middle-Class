@@ -24,16 +24,16 @@
      borderopacity="1.0"
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
-     inkscape:zoom="0.5"
-     inkscape:cx="310.04724"
-     inkscape:cy="659.26872"
+     inkscape:zoom="4"
+     inkscape:cx="398.92026"
+     inkscape:cy="800.69008"
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
      showgrid="false"
-     inkscape:window-width="736"
-     inkscape:window-height="646"
-     inkscape:window-x="53"
-     inkscape:window-y="184"
+     inkscape:window-width="1920"
+     inkscape:window-height="1152"
+     inkscape:window-x="0"
+     inkscape:window-y="0"
      inkscape:window-maximized="1" />
   <metadata
      id="metadata7">
@@ -52,7 +52,7 @@
      id="layer1">
     <g
        id="levels"
-       transform="matrix(1.01,0,0,1,-206.90804,-482.93088)">
+       transform="matrix(0.04919729,0,0,0.04871018,337.80944,210.13964)">
       <rect
          y="680.18665"
          x="205.32013"
