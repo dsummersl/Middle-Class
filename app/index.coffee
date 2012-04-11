@@ -14,7 +14,7 @@ class App extends Spine.Controller
       @icontemplate = document.importNode(d3.select(xml.documentElement).select('#levels').node(), true)
       svg = d3.select('#map').append('svg')
       defs = svg.append('defs')
-      for i in [1..5]
+      for i in [1..3]
         mask = defs.append('g').attr('id',"levelmask-#{i}")
         mask.node().appendChild(d3.select(@icontemplate).select("#level-#{i}").node())
 
@@ -53,7 +53,7 @@ class App extends Spine.Controller
               return "translate(#{centroid[0] - scale*iconW/2},#{centroid[1] - iconH}) scale(#{scale},1)"
             )
 
-        for i in [1..5]
+        for i in [1..3]
           parts.selectAll("level-#{i}")
             .data(json.features)
             .enter()

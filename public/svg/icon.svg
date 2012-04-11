@@ -16,24 +16,7 @@
    inkscape:version="0.48.2 r9819"
    sodipodi:docname="icon.svg">
   <defs
-     id="defs4">
-    <pattern
-       inkscape:stockid="Stripes 1:1"
-       id="Strips1_1"
-       patternTransform="translate(0,0) scale(10,10)"
-       height="1"
-       width="2"
-       patternUnits="userSpaceOnUse"
-       inkscape:collect="always">
-      <rect
-         id="rect4746"
-         height="2"
-         width="1"
-         y="-0.5"
-         x="0"
-         style="fill:black;stroke:none" />
-    </pattern>
-  </defs>
+     id="defs4" />
   <sodipodi:namedview
      id="base"
      pagecolor="#ffffff"
@@ -41,14 +24,14 @@
      borderopacity="1.0"
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
-     inkscape:zoom="3.4218167"
-     inkscape:cx="3.9946342"
-     inkscape:cy="1046.3307"
+     inkscape:zoom="27.374534"
+     inkscape:cx="16.798505"
+     inkscape:cy="1049.2531"
      inkscape:document-units="px"
-     inkscape:current-layer="layer1"
+     inkscape:current-layer="levels"
      showgrid="false"
-     inkscape:window-width="1280"
-     inkscape:window-height="752"
+     inkscape:window-width="1920"
+     inkscape:window-height="1152"
      inkscape:window-x="0"
      inkscape:window-y="0"
      inkscape:window-maximized="1" />
@@ -69,41 +52,26 @@
      id="layer1">
     <g
        id="levels">
-      <rect
-         y="9.6307831"
-         x="0.062499948"
-         height="2.3693178"
-         width="4.8741736"
-         id="level-1"
-         style="fill:#2b2200;stroke:#2b2200;stroke-width:0.04532922;stroke-linecap:butt;stroke-linejoin:round;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none" />
-      <rect
-         style="fill:#806600;stroke:#806600;stroke-width:0.04532922;stroke-linecap:butt;stroke-linejoin:round;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none"
-         id="level-2"
-         width="4.8741736"
-         height="2.3693178"
-         x="0.062499948"
-         y="7.2387128" />
-      <rect
-         y="4.846643"
-         x="0.062499948"
-         height="2.3693178"
-         width="4.8741736"
+      <path
+         style="fill:#ffd42a;stroke:#ffe680;stroke-width:0.05372684;stroke-linecap:butt;stroke-linejoin:round;stroke-miterlimit:4;stroke-opacity:1"
+         d="m 2.521353,0.06249996 c 0.5873677,-0.01826515 2.411,3.33415864 2.411,3.33415864 l -4.865911,0 c 0,0 1.8675433,-3.31589349 2.454911,-3.33415864 z"
          id="level-3"
-         style="fill:#d4aa00;stroke:#d4aa00;stroke-width:0.04532922;stroke-linecap:butt;stroke-linejoin:round;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none" />
+         inkscape:connector-curvature="0"
+         sodipodi:nodetypes="zccz" />
       <rect
-         style="fill:#ffd42a;stroke:#ffd42a;stroke-width:0.04532922;stroke-linecap:butt;stroke-linejoin:round;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none"
-         id="level-4"
-         width="4.8741736"
-         height="2.3693178"
-         x="0.062499948"
-         y="2.4545701" />
+         y="3.421524"
+         x="0.066441998"
+         height="3.3341587"
+         width="4.865911"
+         id="level-2"
+         style="fill:#aa8800;stroke:#ffcc00;stroke-width:0.05372684;stroke-linecap:butt;stroke-linejoin:round;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none" />
       <rect
-         y="0.062499929"
-         x="0.062499948"
-         height="2.3693178"
-         width="4.8741736"
-         id="level-5"
-         style="fill:#ffdd55;stroke:#ffdd55;stroke-width:0.04532922;stroke-linecap:butt;stroke-linejoin:round;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none" />
+         y="6.781096"
+         x="0.0625"
+         height="3.3735867"
+         width="4.873795"
+         id="level-1"
+         style="fill:#2b2200;stroke:#806600;stroke-width:0.05408734;stroke-linecap:butt;stroke-linejoin:round;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none" />
     </g>
   </g>
 </svg>
