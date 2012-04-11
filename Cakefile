@@ -42,6 +42,15 @@ task 'setupdatabase', 'setup the couchdb database', ->
           return sum(values) if rereduce
           return values.length
       # group puma by different monetary amounts.
+      ###
+      I want something like this:
+        [
+        { puma: "800", "lowermiddleupperpercentages": [ 60, 35, 5], "count": 35 , "excluded": 450 }
+        ]
+      lowclass:
+        map: (doc) ->
+        reduce: (key,values,rereduce) ->
+      ###
     )
   )
 
