@@ -2,7 +2,6 @@ fs = require 'fs'
 exec = require('child_process').exec
 spawn = require('child_process').spawn
 
-# TODO make a chain-able command for exec that also echos the command itself.
 execHandler = (error,stdout,stderr) ->
   console.log stdout
   console.log stderr
@@ -13,9 +12,6 @@ task 'copyDependencies', 'For whatever reason spine sucks at using NPM modules -
   exec 'cp node_modules/d3/d3.v2.js app/lib', execHandler
 
 option '-t','--type [TYPE]', 'Type of map to generate (1percent = SPUMA, 5percent = PUMA)'
-
-task 'mkdata', 'use R to convert the source CSV files', ->
-  exec 'r --no-save < bin/groupState.r ; mv out.csv public/data/nc.csv', execHandler
 
 ###
 # http://127.0.0.1:28017/middleclass/entries/
@@ -41,13 +37,12 @@ dbconnect = ->
     puma: { type: String, index: true }
     state: String
     sex: Boolean
-    age: String
-    school: String
-    income: String
-    incomecount: String
+    age: Number
+    school: Number
+    income: Number
+    incomecount: Number
   Entry = mongoose.model('Entry', EntrySchema)
   return [db,Entry]
-
 
 task 'server', 'database server', ->
   conn = dbconnect()
@@ -57,23 +52,38 @@ task 'server', 'database server', ->
   app.get('/', (req,res)->
     res.json({key: 'nothing doing'})
   )
+
   # get the counts for a specific puma: lm is the boundary between lower middle and mu is the boundary between middle and upper.
-  app.get('/classes/:puma/:lm/:mu', (req,res) ->
-    counts = Entry.where('puma').equals(req.params.puma)
-      .select('incomecount')
-      .run( (err,doc) ->
+  finishSearch = (search,req,res) ->
+    search.select('incomecount')
+      .run (err,doc) ->
         if err
           console.log "Error: #{err}"
-          return {}
+          res.json {}
+          return
         total = 0
         total += parseInt(i.incomecount) for i in doc
-        console.log "total = #{total}"
-        res.json({total: total})
-      )
-  )
+        res.json {puma: req.params.puma, total: total}
+
+  app.get '/classes/:puma/lte/:mu', (req,res) ->
+    counts = Entry.where('puma').equals(req.params.puma)
+      .where('income').lte(req.params.mu)
+    finishSearch(counts,req,res)
+  app.get '/classes/:puma/gt/:lm', (req,res) ->
+    counts = Entry.where('puma').equals(req.params.puma)
+      .where('income').gt(req.params.lm)
+    finishSearch(counts,req,res)
+  app.get '/classes/:puma/:lm/:mu', (req,res) ->
+    counts = Entry.where('puma').equals(req.params.puma)
+      .where('income').gt(req.params.lm)
+      .where('income').lte(req.params.mu)
+    finishSearch(counts,req,res)
+
+  console.log "Started server on port 3333"
   app.listen(3333)
 
 task 'processdata', 'move the data into mongoose', ->
+  #exec 'r --no-save < bin/groupState.r ; mv out.csv public/data/nc.csv', execHandler
   csv = require('ya-csv')
   reader = csv.createCsvFileReader('public/data/nc.csv', {columnsFromHeader: true})
   cnt = 0
@@ -86,10 +96,10 @@ task 'processdata', 'move the data into mongoose', ->
       puma: data.PUMA
       state: 'nc'
       sex: (data.Sex == "1")
-      age: "#{data.Age}"
-      school: "#{data.School}"
-      income: "#{data.Income}"
-      incomecount: "#{data.IncomeCount}"
+      age: parseInt(data.Age)
+      school: parseInt(data.School)
+      income: parseInt(data.Income)
+      incomecount: parseInt(data.IncomeCount)
     cnt++
     entry.save (err) ->
       console.log "Error saving..." if err
@@ -166,7 +176,6 @@ task 'd3test', '', ->
   puma = JSON.parse(fs.readFileSync("public/svg/5percent-combined.geojson"))
   spuma = JSON.parse(fs.readFileSync("public/svg/1percent-combined.geojson"))
 
-  #console.log "total parts = #{json}"
   console.log "puma = #{(f.properties.PUMA5 for f in puma.features).length}"
   console.log "spuma = #{(f.properties.PUMA1 for f in spuma.features).length}"
 

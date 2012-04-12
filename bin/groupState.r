@@ -36,6 +36,11 @@ groups <- with(samples, ftable(
 # so I do this, to filter out the non-events:
 data <- as.data.frame(groups)
 data <- subset(data,Freq > 0)
+
 colnames(data) <- c('PUMA','Sex','Age','School','Income','IncomeCount')
+
+# replace all the string funkiness with ints
+data$Age <- factor(data$Age,labels=c(17,24,30,34,39,49,59,100))
+data$Income <- factor(data$Income,labels=c(seq(2,20,by=2)*10,10000))
 
 write.csv(data,file="out.csv",row.names=FALSE)
