@@ -7,7 +7,6 @@ class App extends Spine.Controller
     super
     randomInt = (max, min=0) -> Math.floor(Math.random() * (max - min + 1)) + min
 
-    
     @icontemplate = null
     d3.xml "svg/icon.svg", "image/svg+xml", (xml)=>
       @log "loaded icon.svg"

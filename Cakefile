@@ -55,15 +55,20 @@ task 'server', 'database server', ->
 
   # get the counts for a specific puma: lm is the boundary between lower middle and mu is the boundary between middle and upper.
   finishSearch = (search,req,res) ->
-    search.select('incomecount')
-      .run (err,doc) ->
-        if err
-          console.log "Error: #{err}"
-          res.json {}
-          return
-        total = 0
-        total += parseInt(i.incomecount) for i in doc
-        res.json {puma: req.params.puma, total: total}
+    Entry.findOne {puma: req.params.puma}, (err,doc) ->
+      if err or doc?.puma != req.params.puma
+        console.log "Error: #{err}"
+        res.json {result: "failure", extra: "#{err} (no puma)"}
+        return
+      search.select('incomecount')
+        .run (err,doc) ->
+          if err
+            console.log "Error: #{err}"
+            res.json {result: "failure", extra: err}
+            return
+          total = 0
+          total += parseInt(i.incomecount) for i in doc
+          res.json {result: "success", puma: req.params.puma, total: total}
 
   app.get '/classes/:puma/lte/:mu', (req,res) ->
     counts = Entry.where('puma').equals(req.params.puma)
