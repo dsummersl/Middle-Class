@@ -49,9 +49,30 @@ task 'server', 'database server', ->
   db = conn[0]
   Entry = conn[1]
   app = require('express').createServer()
-  app.get('/', (req,res)->
+  app.get '/', (req,res)->
     res.json({key: 'nothing doing'})
-  )
+
+  groupSearch = (req,res,condition) ->
+    grp = (doc,out) -> out.cnt += doc.incomecount
+    done = (err,doc) ->
+      if err
+        console.log "Error: #{err}"
+        res.json {result: "failure", extra: err}
+        return
+      res.json { result: "success", pumas: doc }
+    Entry.collection.group(
+      {puma:true},                  # keys
+      condition,                    # condition
+      {cnt: 0},                     # initial
+      grp,                          # reduce
+      null,                         # finalize
+      null,                         # command
+      done                          # callback
+    )
+
+  app.get '/classes/all/lte/:mu', (req,res) -> groupSearch(req,res,{income: {$lte: parseInt(req.params.mu)}})
+  app.get '/classes/all/gt/:lm', (req,res) -> groupSearch(req,res,{income: {$gt: parseInt(req.params.lm)}})
+  app.get '/classes/all/:lm/:mu', (req,res) -> groupSearch(req,res,{income: {$gt: parseInt(req.params.lm), $lte: parseInt(req.params.mu)}})
 
   # get the counts for a specific puma: lm is the boundary between lower middle and mu is the boundary between middle and upper.
   finishSearch = (search,req,res) ->
@@ -60,7 +81,7 @@ task 'server', 'database server', ->
         console.log "Error: #{err}"
         res.json {result: "failure", extra: "#{err} (no puma)"}
         return
-      search.select('incomecount')
+      search.select('puma','incomecount')
         .run (err,doc) ->
           if err
             console.log "Error: #{err}"
