@@ -22,67 +22,81 @@ task 'mkdata', 'use R to convert the source CSV files', ->
 # Wanna do something like this via HTTP:
 # db.entries.find({puma:"300", age: "(40,50]", school: "11"})
 ###
+# group puma by different monetary amounts.
+###
+I want something like this:
+  [
+  { puma: "800", "lowermiddleupperpercentages": [ 60, 35, 5], "count": 35 , "excluded": 450 }
+  ]
+lowclass:
+  map: (doc) ->
+  reduce: (key,values,rereduce) ->
+###
 
-task 'setupdatabase', 'setup the couchdb database', ->
-  cradle = require('cradle')
-  console.log "cradle..."
-  db = new(cradle.Connection)().database('middleclass')
-  db.exists( (err,exists) ->
-    if err
-      console.log "Error: #{err}"
-      return
-    #db.destroy() if exists
-    #db.create()
-    # http://localhost:5984/middleclass/_design/spineapp/_view/count
-    db.save('_design/spineapp',
-      # count up all the rows of data
-      count:
-        map: (doc) -> emit(doc._id)
-        reduce: (key,values,rereduce) ->
-          return sum(values) if rereduce
-          return values.length
-      # group puma by different monetary amounts.
-      ###
-      I want something like this:
-        [
-        { puma: "800", "lowermiddleupperpercentages": [ 60, 35, 5], "count": 35 , "excluded": 450 }
-        ]
-      lowclass:
-        map: (doc) ->
-        reduce: (key,values,rereduce) ->
-      ###
-    )
+dbconnect = ->
+  mongoose = require('mongoose')
+  db = mongoose.connect('mongodb://localhost/middleclass')
+  EntrySchema = new mongoose.Schema()
+  EntrySchema.add
+    puma: { type: String, index: true }
+    state: String
+    sex: Boolean
+    age: String
+    school: String
+    income: String
+    incomecount: String
+  Entry = mongoose.model('Entry', EntrySchema)
+  return [db,Entry]
+
+
+task 'server', 'database server', ->
+  conn = dbconnect()
+  db = conn[0]
+  Entry = conn[1]
+  app = require('express').createServer()
+  app.get('/', (req,res)->
+    res.json({key: 'nothing doing'})
   )
+  # get the counts for a specific puma: lm is the boundary between lower middle and mu is the boundary between middle and upper.
+  app.get('/classes/:puma/:lm/:mu', (req,res) ->
+    counts = Entry.where('puma').equals(req.params.puma)
+      .select('incomecount')
+      .run( (err,doc) ->
+        if err
+          console.log "Error: #{err}"
+          return {}
+        total = 0
+        total += parseInt(i.incomecount) for i in doc
+        console.log "total = #{total}"
+        res.json({total: total})
+      )
+  )
+  app.listen(3333)
 
 task 'processdata', 'move the data into mongoose', ->
   csv = require('ya-csv')
-  cradle = require('cradle')
-  console.log "cradle..."
-  db = new(cradle.Connection)().database('middleclass')
-  db.exists( (err,exists) ->
-    console.log "Error: #{err}" if err
-    console.log "db exists!" if exists
-    db.create() if not exists
-
-    reader = csv.createCsvFileReader('public/data/nc.csv', {columnsFromHeader: true})
-    cnt = 0
-    reader.addListener 'data', (data)=>
-      #console.log "saving #{cnt}: #{data.PUMA} - #{data.School}"
-      cnt++
-      db.save({
-        puma: data.PUMA
-        state: 'nc'
-        sex: (data.Sex == "1")
-        age: data.Age
-        school: data.School
-        income: data.Income
-        incomecount: data.IncomeCount
-      }, (err,res) ->
-        console.log "Error saving..." if err
-      )
-    reader.addListener 'end', () =>
-      console.log "DONE"
-  )
+  reader = csv.createCsvFileReader('public/data/nc.csv', {columnsFromHeader: true})
+  cnt = 0
+  conn = dbconnect()
+  db = conn[0]
+  Entry = conn[1]
+  reader.addListener 'data', (data)=>
+    #console.log "saving #{cnt}: #{data.PUMA} - #{data.School}"
+    entry = new Entry
+      puma: data.PUMA
+      state: 'nc'
+      sex: (data.Sex == "1")
+      age: "#{data.Age}"
+      school: "#{data.School}"
+      income: "#{data.Income}"
+      incomecount: "#{data.IncomeCount}"
+    cnt++
+    entry.save (err) ->
+      console.log "Error saving..." if err
+      cnt--
+  reader.addListener 'end', () =>
+    console.log "DONE"
+    #db.disconnect()
 
 task 'mapcommands', 'build commands to build map', (options) ->
   if options.type not in ['1percent','5percent']
