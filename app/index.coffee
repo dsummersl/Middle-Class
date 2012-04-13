@@ -39,25 +39,41 @@ class App extends Spine.Controller
           .data(json.features)
           .enter()
           .append('path')
+          .attr('id', (d)-> "puma-#{d.properties.PUMA5}")
           .attr('class','part')
           .attr('d',path)
 
-        leveladder = (s,i)->
-          scale = Math.random()/i
+        leveladder = (s,pumas,i)->
           s.attr('xlink:href',"#levelmask-#{i}")
-            .attr('class', "level-${i}")
-            .attr('id', (d)-> "puma-#{d.properties.PUMA5}-#{i}")
+            .attr('class', "level-#{i}")
+            .attr('id', (d)-> "puma-#{d}-#{i}")
             .attr('transform', (d)->
-              centroid = path.centroid(d)
+              centroid = pumas[d].centroid
+              console.log "no value for #{d}" if not pumas[d].centroid
+              scale = 1
               return "translate(#{centroid[0] - scale*iconW/2},#{centroid[1] - iconH}) scale(#{scale},1)"
             )
 
-        for i in [1..3]
+        d3.json('http://localhost:3333/classes/all/lte/20', (db) ->
+          i = 1
+          keys = (k for k,v of db.pumas)
+          #okeys = (v.properties.PUMA5 for v in json.features)
+          #console.log "got this many summaries: #{keys.length}"
+          #console.log "got this many features: #{okeys.length}"
+          #console.log "summaries = #{keys}"
+          #console.log "features = #{okeys}"
+          for d in json.features
+            k = "#{d.properties.PUMA5}"
+            if db.pumas[k]?
+              #console.log "setting #{k}"
+              db.pumas[k].centroid = path.centroid(d)
+          console.log "selecting..."
           parts.selectAll("level-#{i}")
-            .data(json.features)
+            .data(keys)
             .enter()
             .append('use')
-            .call(leveladder,i)
+            .call(leveladder,db.pumas,i)
+        )
 
         console.log "maDe path"
 

@@ -29,6 +29,11 @@ lowclass:
   reduce: (key,values,rereduce) ->
 ###
 
+zeroFill = ( number, width ) ->
+  width -= number.toString().length
+  return new Array( width + (/\./.test( number ) ? 2 : 1) ).join( '0' ) + number if width > 0
+  return number
+
 dbconnect = ->
   mongoose = require('mongoose')
   db = mongoose.connect('mongodb://localhost/middleclass')
@@ -48,9 +53,8 @@ task 'server', 'database server', ->
   conn = dbconnect()
   db = conn[0]
   Entry = conn[1]
-  app = require('express').createServer()
-  app.get '/', (req,res)->
-    res.json({key: 'nothing doing'})
+  express = require('express')
+  app = express.createServer()
 
   groupSearch = (req,res,condition) ->
     grp = (doc,out) -> out.cnt += doc.incomecount
@@ -59,7 +63,9 @@ task 'server', 'database server', ->
         console.log "Error: #{err}"
         res.json {result: "failure", extra: err}
         return
-      res.json { result: "success", pumas: doc }
+      done = {}
+      done[i.puma] = i for i in doc
+      res.json { result: "success", pumas: done }
     Entry.collection.group(
       {puma:true},                  # keys
       condition,                    # condition
@@ -105,6 +111,8 @@ task 'server', 'database server', ->
       .where('income').lte(req.params.mu)
     finishSearch(counts,req,res)
 
+  app.use(express.static("#{__dirname}/public"))
+
   console.log "Started server on port 3333"
   app.listen(3333)
 
@@ -119,7 +127,7 @@ task 'processdata', 'move the data into mongoose', ->
   reader.addListener 'data', (data)=>
     #console.log "saving #{cnt}: #{data.PUMA} - #{data.School}"
     entry = new Entry
-      puma: data.PUMA
+      puma: zeroFill(data.PUMA,6)
       state: 'nc'
       sex: (data.Sex == "1")
       age: parseInt(data.Age)
