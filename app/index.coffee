@@ -50,30 +50,26 @@ class App extends Spine.Controller
             .attr('transform', (d)->
               centroid = pumas[d].centroid
               console.log "no value for #{d}" if not pumas[d].centroid
-              scale = 1
+              scale = pumas[d].lower / pumas[d].total if i == 1
+              scale = pumas[d].middle / pumas[d].total if i == 2
+              scale = pumas[d].upper / pumas[d].total if i == 3
               return "translate(#{centroid[0] - scale*iconW/2},#{centroid[1] - iconH}) scale(#{scale},1)"
             )
 
-        d3.json('http://localhost:3333/classes/all/lte/20', (db) ->
-          i = 1
+        d3.json 'http://localhost:3333/classes/all/20/70', (db) ->
           keys = (k for k,v of db.pumas)
-          #okeys = (v.properties.PUMA5 for v in json.features)
-          #console.log "got this many summaries: #{keys.length}"
-          #console.log "got this many features: #{okeys.length}"
-          #console.log "summaries = #{keys}"
-          #console.log "features = #{okeys}"
           for d in json.features
             k = "#{d.properties.PUMA5}"
             if db.pumas[k]?
-              #console.log "setting #{k}"
               db.pumas[k].centroid = path.centroid(d)
-          console.log "selecting..."
-          parts.selectAll("level-#{i}")
-            .data(keys)
-            .enter()
-            .append('use')
-            .call(leveladder,db.pumas,i)
-        )
+              db.pumas[k].total = db.pumas[k].lower + db.pumas[k].middle + db.pumas[k].upper
+          for i in [1..3]
+            # TODO these don't look right: 04400 and 04300
+            parts.selectAll(".level-#{i}")
+              .data(keys)
+              .enter()
+              .append('use')
+              .call(leveladder,db.pumas,i)
 
         console.log "maDe path"
 

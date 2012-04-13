@@ -13,22 +13,6 @@ task 'copyDependencies', 'For whatever reason spine sucks at using NPM modules -
 
 option '-t','--type [TYPE]', 'Type of map to generate (1percent = SPUMA, 5percent = PUMA)'
 
-###
-# http://127.0.0.1:28017/middleclass/entries/
-# Wanna do something like this via HTTP:
-# db.entries.find({puma:"300", age: "(40,50]", school: "11"})
-###
-# group puma by different monetary amounts.
-###
-I want something like this:
-  [
-  { puma: "800", "lowermiddleupperpercentages": [ 60, 35, 5], "count": 35 , "excluded": 450 }
-  ]
-lowclass:
-  map: (doc) ->
-  reduce: (key,values,rereduce) ->
-###
-
 zeroFill = ( number, width ) ->
   width -= number.toString().length
   return new Array( width + (/\./.test( number ) ? 2 : 1) ).join( '0' ) + number if width > 0
@@ -56,8 +40,11 @@ task 'server', 'database server', ->
   express = require('express')
   app = express.createServer()
 
-  groupSearch = (req,res,condition) ->
-    grp = (doc,out) -> out.cnt += doc.incomecount
+  groupSearch = (req,res,lowmarker,middlemarker,condition) ->
+    grp = (doc,out) =>
+      out.lower += doc.incomecount if doc.income <= out.lowmarker
+      out.middle += doc.incomecount if doc.income <= out.middlemarker and doc.income > out.lowmarker
+      out.upper += doc.incomecount if doc.income > out.middlemarker
     done = (err,doc) ->
       if err
         console.log "Error: #{err}"
@@ -69,16 +56,15 @@ task 'server', 'database server', ->
     Entry.collection.group(
       {puma:true},                  # keys
       condition,                    # condition
-      {cnt: 0},                     # initial
+      {lower: 0, middle: 0, upper: 0, lowmarker: lowmarker, middlemarker: middlemarker },# initial
       grp,                          # reduce
       null,                         # finalize
       null,                         # command
       done                          # callback
     )
 
-  app.get '/classes/all/lte/:mu', (req,res) -> groupSearch(req,res,{income: {$lte: parseInt(req.params.mu)}})
-  app.get '/classes/all/gt/:lm', (req,res) -> groupSearch(req,res,{income: {$gt: parseInt(req.params.lm)}})
-  app.get '/classes/all/:lm/:mu', (req,res) -> groupSearch(req,res,{income: {$gt: parseInt(req.params.lm), $lte: parseInt(req.params.mu)}})
+  app.get '/classes/all/:lm/:mu', (req,res) -> groupSearch(req,res,req.params.lm,req.params.mu,{})
+  #app.get '/classes/all/:lm/:mu', (req,res) -> groupSearch(req,res,{income: {$gt: parseInt(req.params.lm), $lte: parseInt(req.params.mu)}})
 
   # get the counts for a specific puma: lm is the boundary between lower middle and mu is the boundary between middle and upper.
   finishSearch = (search,req,res) ->
