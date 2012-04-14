@@ -103,30 +103,32 @@ task 'server', 'database server', ->
   app.listen(3333)
 
 task 'processdata', 'move the data into mongoose', ->
-  #exec 'r --no-save < bin/groupState.r ; mv out.csv public/data/nc.csv', execHandler
-  csv = require('ya-csv')
-  reader = csv.createCsvFileReader('public/data/nc.csv', {columnsFromHeader: true})
-  cnt = 0
-  conn = dbconnect()
-  db = conn[0]
-  Entry = conn[1]
-  reader.addListener 'data', (data)=>
-    #console.log "saving #{cnt}: #{data.PUMA} - #{data.School}"
-    entry = new Entry
-      puma: zeroFill(data.PUMA,6)
-      state: 'nc'
-      sex: (data.Sex == "1")
-      age: parseInt(data.Age)
-      school: parseInt(data.School)
-      income: parseInt(data.Income)
-      incomecount: parseInt(data.IncomeCount)
-    cnt++
-    entry.save (err) ->
-      console.log "Error saving..." if err
-      cnt--
-  reader.addListener 'end', () =>
-    console.log "DONE"
-    #db.disconnect()
+  exec 'r --no-save < bin/groupState.r', (error,stdout,stderr) ->
+    console.log "Generated stats, importing into db..."
+    csv = require('ya-csv')
+    reader = csv.createCsvFileReader('out.csv', {columnsFromHeader: true})
+    cnt = 0
+    conn = dbconnect()
+    db = conn[0]
+    Entry = conn[1]
+    Entry.collection.drop()
+    reader.addListener 'data', (data)=>
+      #console.log "saving #{cnt}: #{data.PUMA} - #{data.School}"
+      entry = new Entry
+        puma: zeroFill(data.PUMA,6)
+        state: parseInt(data.State)
+        sex: (data.Sex == "1")
+        age: parseInt(data.Age)
+        school: parseInt(data.School)
+        income: parseInt(data.Income)
+        incomecount: parseInt(data.IncomeCount)
+      cnt++
+      entry.save (err) ->
+        console.log "Error saving..." if err
+        cnt--
+    reader.addListener 'end', () =>
+      console.log "DONE"
+      #db.disconnect()
 
 task 'mapcommands', 'build commands to build map', (options) ->
   if options.type not in ['1percent','5percent']

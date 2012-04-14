@@ -6,6 +6,7 @@ samples <- read.csv("csv_pnc/ss10pnc.csv")
 # AGEP = age
 # SCHL = schooling
 # PINCP = total person's income
+# ST = State
 
 # TODO additional fields I like:
 # FINC = family income
@@ -25,6 +26,7 @@ samples <- read.csv("csv_pnc/ss10pnc.csv")
 
 schoolGroups <- c('NA','None','Preschool','<=6th','<=8th','9th','10th','11th','12th','Highschool Grad','<1yr college','1+yr college','associates','bachelors','masters','professional','doctorate')
 groups <- with(samples, ftable(
+  ST,
   PUMA, 
   SEX,
   cut(AGEP,breaks=c(0,18,25,30,35,40,50,60,Inf)),
@@ -37,7 +39,7 @@ groups <- with(samples, ftable(
 data <- as.data.frame(groups)
 data <- subset(data,Freq > 0)
 
-colnames(data) <- c('PUMA','Sex','Age','School','Income','IncomeCount')
+colnames(data) <- c('State','PUMA','Sex','Age','School','Income','IncomeCount')
 
 # replace all the string funkiness with ints
 data$Age <- factor(data$Age,labels=c(17,24,30,34,39,49,59,100))
