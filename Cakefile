@@ -24,7 +24,7 @@ dbconnect = ->
   EntrySchema = new mongoose.Schema()
   EntrySchema.add
     puma: { type: String, index: true }
-    state: String
+    state: { type: Number, index: true }
     sex: Boolean
     age: Number
     school: Number
@@ -51,10 +51,10 @@ task 'server', 'database server', ->
         res.json {result: "failure", extra: err}
         return
       done = {}
-      done[i.puma] = i for i in doc
+      done["#{i.state}-#{i.puma}"] = i for i in doc
       res.json { result: "success", pumas: done }
     Entry.collection.group(
-      {puma:true},                  # keys
+      {state: true, puma:true},     # keys
       condition,                    # condition
       {lower: 0, middle: 0, upper: 0, lowmarker: lowmarker, middlemarker: middlemarker },# initial
       grp,                          # reduce
@@ -64,9 +64,9 @@ task 'server', 'database server', ->
     )
 
   app.get '/classes/all/:lm/:mu', (req,res) -> groupSearch(req,res,req.params.lm,req.params.mu,{})
-  #app.get '/classes/all/:lm/:mu', (req,res) -> groupSearch(req,res,{income: {$gt: parseInt(req.params.lm), $lte: parseInt(req.params.mu)}})
 
   # get the counts for a specific puma: lm is the boundary between lower middle and mu is the boundary between middle and upper.
+  # TODO these individual puma searches dont' work - they need to include the state in the parameters.
   finishSearch = (search,req,res) ->
     Entry.findOne {puma: req.params.puma}, (err,doc) ->
       if err or doc?.puma != req.params.puma
@@ -103,7 +103,8 @@ task 'server', 'database server', ->
   app.listen(3333)
 
 task 'processdata', 'move the data into mongoose', ->
-  exec 'r --no-save < bin/groupState.r', (error,stdout,stderr) ->
+  #exec 'r --no-save < bin/groupState.r', (error,stdout,stderr) ->
+  exec 'echo no', (error,stdout,stderr) ->
     console.log "Generated stats, importing into db..."
     csv = require('ya-csv')
     reader = csv.createCsvFileReader('out.csv', {columnsFromHeader: true})
@@ -144,18 +145,26 @@ task 'mapcommands', 'build commands to build map', (options) ->
   dir = options.type
   fs.readdir dir, (err,list) =>
     cmds = []
-    first = false
+    first = true
     for i in list
       if /shp$/.test(i)
-        if !first
-          first = true
-          cmds.push "ogr2ogr #{dir}-combined.shp #{dir}/#{i}"
+        num = parseInt(i.replace(/^p5/,'').replace(/_.*$/,'').replace(/^0*/,''))
+        cmds.push "echo 'processing #{i} - #{num}'"
+        cmds.push "rm t.geojson"
+        cmds.push "ogr2ogr -f 'GeoJSON' t.geojson #{dir}/#{i}"
+        cmds.push "sed 's/properties\": { \"AREA/properties\": { \"State\": #{num}, \"AREA/' t.geojson > tt.geojson"
+        if first
+          first = false
+          cmds.push "rm #{dir}-combined.*"
+          cmds.push "ogr2ogr -f 'ESRI Shapefile' #{dir}-combined.shp tt.geojson"
         else
-          cmds.push "ogr2ogr -update -append #{dir}-combined.shp #{dir}/#{i} -nln #{dir}-combined"
+          cmds.push "rm t.shp"
+          cmds.push "ogr2ogr -f 'ESRI Shapefile' t.shp tt.geojson"
+          cmds.push "ogr2ogr -update -append #{dir}-combined.shp t.shp -nln #{dir}-combined"
     console.log i for i in cmds
-    console.log "ogr2ogr -f 'GeoJSON' #{dir}-combined.json #{dir}-combined.shp"
+    console.log "ogr2ogr -f 'GeoJSON' #{dir}-combined.geojson #{dir}-combined.shp"
     console.log "rm #{dir}-combined.shp"
-    console.log "mv #{dir}-combined.json public/svg"
+    console.log "mv #{dir}-combined.geojson public/svg"
 
 ###
 task 'data1', 'Build some data with d3', ->

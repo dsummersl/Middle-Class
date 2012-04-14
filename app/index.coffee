@@ -39,7 +39,7 @@ class App extends Spine.Controller
           .data(json.features)
           .enter()
           .append('path')
-          .attr('id', (d)-> "puma-#{d.properties.PUMA5}")
+          .attr('id', (d)-> "puma-#{d.properties.State}-#{d.properties.PUMA5}")
           .attr('class','part')
           .attr('d',path)
 
@@ -59,7 +59,7 @@ class App extends Spine.Controller
         d3.json 'http://localhost:3333/classes/all/20/70', (db) ->
           keys = (k for k,v of db.pumas)
           for d in json.features
-            k = "#{d.properties.PUMA5}"
+            k = "#{d.properties.State}-#{d.properties.PUMA5}"
             if db.pumas[k]?
               db.pumas[k].centroid = path.centroid(d)
               db.pumas[k].total = db.pumas[k].lower + db.pumas[k].middle + db.pumas[k].upper

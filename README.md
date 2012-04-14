@@ -8,6 +8,7 @@ An interractive viz exploring this question.
 
 Spine: brew install spine
 Couchdb: brew install couchdb
+xml starlet
 
 *Notes*
 ----
