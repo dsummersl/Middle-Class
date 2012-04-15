@@ -132,6 +132,7 @@ task 'processdata', 'move the data into mongoose', ->
       #db.disconnect()
 
 task 'mapcommands', 'build commands to build map', (options) ->
+  # TODO states to remove: 72 (puerto rico)?
   if options.type not in ['1percent','5percent']
     console.log "You need to specify a type: 1percent or 5percent"
     return

@@ -24,9 +24,9 @@
      borderopacity="1.0"
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
-     inkscape:zoom="27.374534"
+     inkscape:zoom="16"
      inkscape:cx="16.798505"
-     inkscape:cy="1049.2531"
+     inkscape:cy="1052.355"
      inkscape:document-units="px"
      inkscape:current-layer="levels"
      showgrid="false"
@@ -52,26 +52,27 @@
      id="layer1">
     <g
        id="levels">
-      <path
-         style="fill:#ffd42a;stroke:#ffe680;stroke-width:0.05372684;stroke-linecap:butt;stroke-linejoin:round;stroke-miterlimit:4;stroke-opacity:1"
-         d="m 2.521353,0.06249996 c 0.5873677,-0.01826515 2.411,3.33415864 2.411,3.33415864 l -4.865911,0 c 0,0 1.8675433,-3.31589349 2.454911,-3.33415864 z"
-         id="level-3"
-         inkscape:connector-curvature="0"
-         sodipodi:nodetypes="zccz" />
       <rect
-         y="3.421524"
+         y="0.073852129"
          x="0.066441998"
-         height="3.3341587"
+         height="10.024201"
          width="4.865911"
          id="level-2"
-         style="fill:#aa8800;stroke:#ffcc00;stroke-width:0.05372684;stroke-linecap:butt;stroke-linejoin:round;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none" />
+         style="fill:#aa8800;stroke:#ffcc00;stroke-width:0.09315862;stroke-linecap:butt;stroke-linejoin:round;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none" />
       <rect
-         y="6.781096"
-         x="0.0625"
-         height="3.3735867"
-         width="4.873795"
+         style="fill:#ffcc00;stroke:#ffcc00;stroke-width:0.09315862000000000;stroke-linecap:butt;stroke-linejoin:round;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none"
          id="level-1"
-         style="fill:#2b2200;stroke:#806600;stroke-width:0.05408734;stroke-linecap:butt;stroke-linejoin:round;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none" />
+         width="4.865911"
+         height="10.024201"
+         x="0.066441998"
+         y="0.073852129" />
+      <rect
+         y="0.073852129"
+         x="0.066441998"
+         height="10.024201"
+         width="4.865911"
+         id="level-3"
+         style="fill:#554400;stroke:#2b2200;stroke-width:0.09315862;stroke-linecap:butt;stroke-linejoin:round;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none" />
     </g>
   </g>
 </svg>

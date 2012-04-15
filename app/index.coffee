@@ -9,8 +9,8 @@ class App extends Spine.Controller
 
     @icontemplate = null
     d3.xml "svg/icon.svg", "image/svg+xml", (xml)=>
-      @log "loaded icon.svg"
       @icontemplate = document.importNode(d3.select(xml.documentElement).select('#levels').node(), true)
+      @log "loaded icon.svg"
       svg = d3.select('#map').append('svg')
       defs = svg.append('defs')
       for i in [1..3]
@@ -36,40 +36,36 @@ class App extends Spine.Controller
           ))
           .append('g')
         parts.selectAll('.part')
-          .data(json.features)
+          .data(json.features, (d)-> "#{d.properties.State}-#{d.properties.PUMA5}")
           .enter()
           .append('path')
           .attr('id', (d)-> "puma-#{d.properties.State}-#{d.properties.PUMA5}")
           .attr('class','part')
           .attr('d',path)
 
-        leveladder = (s,pumas,i)->
-          s.attr('xlink:href',"#levelmask-#{i}")
-            .attr('class', "level-#{i}")
-            .attr('id', (d)-> "puma-#{d}-#{i}")
-            .attr('transform', (d)->
-              centroid = pumas[d].centroid
-              console.log "no value for #{d}" if not pumas[d].centroid
-              scale = pumas[d].lower / pumas[d].total if i == 1
-              scale = pumas[d].middle / pumas[d].total if i == 2
-              scale = pumas[d].upper / pumas[d].total if i == 3
-              return "translate(#{centroid[0] - scale*iconW/2},#{centroid[1] - iconH}) scale(#{scale},1)"
-            )
-
-        d3.json 'http://localhost:3333/classes/all/20/70', (db) ->
+        d3.json 'http://localhost:3333/classes/all/25/65', (db) ->
           keys = (k for k,v of db.pumas)
           for d in json.features
             k = "#{d.properties.State}-#{d.properties.PUMA5}"
             if db.pumas[k]?
-              db.pumas[k].centroid = path.centroid(d)
               db.pumas[k].total = db.pumas[k].lower + db.pumas[k].middle + db.pumas[k].upper
-          for i in [1..3]
-            # TODO these don't look right: 04400 and 04300
-            parts.selectAll(".level-#{i}")
+          scale = d3.scale.linear().domain([0,1]).range(['#000','#fff'])
+          for i in [3..3]
+            parts.selectAll(".part")
               .data(keys)
-              .enter()
-              .append('use')
-              .call(leveladder,db.pumas,i)
+              .transition()
+              .delay(300)
+              .style('fill', (d) =>
+                #val = db.pumas[d].lower / db.pumas[d].total if i == 1
+                #val = db.pumas[d].middle / db.pumas[d].total if i == 2
+                val = db.pumas[d].upper / db.pumas[d].total
+                # $('#puma-36-04304')
+                #console.log "setting it to #{val} for #{d} - #{db.pumas[d].upper} / #{db.pumas[d].total} #{i} #{scale(val)}"
+                return scale(val)
+              )
+              #.enter()
+              #.append('use')
+              #.call(leveladder,db.pumas,i)
 
         console.log "maDe path"
 
