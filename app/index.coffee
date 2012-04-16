@@ -11,19 +11,30 @@ class App extends Spine.Controller
       path = d3.geo.path()
       console.log "maKe path"
       svg = d3.select('#map').append('svg')
-      parts = svg.append('g')
+        .append('g')
         .attr('id', 'mapgraphic')
         .append('g')
         .call(d3.behavior.zoom().on("zoom", ()=>
           parts.attr("transform", "translate(#{d3.event.translate}) scale(#{d3.event.scale})")
         ))
         .append('g')
-      parts.selectAll('.part')
+      parts = svg.selectAll('.part')
         .data(json.features, (d) -> "#{d.properties.State}-#{d.properties.PUMA5}-#{d.properties.PERIMETER}")
-        .enter()
+
+      parts.enter()
         .append('path')
-        .attr('id', (d)-> "puma-#{d.properties.State}-#{d.properties.PUMA5}-#{d.properties.PERIMETER}")
-        .attr('class','part')
+        .attr('id', (d)-> "lower-#{d.properties.State}-#{d.properties.PUMA5}-#{d.properties.PERIMETER}")
+        .attr('class','part lower')
+        .attr('d',path)
+      parts.enter()
+        .append('path')
+        .attr('id', (d)-> "middle-#{d.properties.State}-#{d.properties.PUMA5}-#{d.properties.PERIMETER}")
+        .attr('class','part middle')
+        .attr('d',path)
+      parts.enter()
+        .append('path')
+        .attr('id', (d)-> "upper-#{d.properties.State}-#{d.properties.PUMA5}-#{d.properties.PERIMETER}")
+        .attr('class','part upper')
         .attr('d',path)
 
       d3.json 'http://localhost:3333/classes/all/25/65', (db) ->
@@ -34,25 +45,38 @@ class App extends Spine.Controller
           if db.pumas[k]?
             features.push(d)
             db.pumas[k].total = db.pumas[k].lower + db.pumas[k].middle + db.pumas[k].upper
-        scale = d3.scale.linear().domain([0,1]).range(['#bbd3f9','#f1ee9c'])
+        lowscale = d3.scale.linear().domain([0,1]).range(['rgba(255,0,0,0)','rgba(255,0,0,.8)'])
+        middlescale = d3.scale.linear().domain([0,1]).range(['rgba(0,255,0,0)','rgba(0,255,0,.8)'])
+        upperscale = d3.scale.linear().domain([0,1]).range(['rgba(0,0,255,0)','rgba(0,0,255,.8)'])
         #console.log "map = "+ ("#{d.properties.State}-#{d.properties.PUMA5}-#{d.properties.PERIMETER}" for d in json.features)
         #console.log "mat = "+ ("#{d.properties.State}-#{d.properties.PUMA5}-#{d.properties.PERIMETER}" for d in features)
-        for i in [3..3]
-          parts.selectAll(".part")
-            .data(features, (d) -> "#{d.properties.State}-#{d.properties.PUMA5}-#{d.properties.PERIMETER}")
-            .transition()
-            .delay(300)
-            .style('fill', (d) =>
-              k = "#{d.properties.State}-#{d.properties.PUMA5}"
-              #val = db.pumas[k].lower / db.pumas[k].total
-              #val = db.pumas[k].middle / db.pumas[k].total
-              val = db.pumas[k].upper / db.pumas[k].total
-              # TODO these are empty :(
-              # $('#puma-37-02100')
-              # $('#puma-37-03000')
-              #console.log "setting it to #{val} for #{d} - #{db.pumas[d].upper} / #{db.pumas[d].total} #{i} #{scale(val)}"
-              return scale(val)
-            )
+        svg.selectAll(".lower")
+          .data(features, (d) -> "#{d.properties.State}-#{d.properties.PUMA5}-#{d.properties.PERIMETER}")
+          .transition()
+          .delay(300)
+          .style('fill', (d) =>
+            k = "#{d.properties.State}-#{d.properties.PUMA5}"
+            val = db.pumas[k].lower / db.pumas[k].total
+            return lowscale(val)
+          )
+        svg.selectAll(".middle")
+          .data(features, (d) -> "#{d.properties.State}-#{d.properties.PUMA5}-#{d.properties.PERIMETER}")
+          .transition()
+          .delay(300)
+          .style('fill', (d) =>
+            k = "#{d.properties.State}-#{d.properties.PUMA5}"
+            val = db.pumas[k].middle / db.pumas[k].total
+            return middlescale(val)
+          )
+        svg.selectAll(".upper")
+          .data(features, (d) -> "#{d.properties.State}-#{d.properties.PUMA5}-#{d.properties.PERIMETER}")
+          .transition()
+          .delay(300)
+          .style('fill', (d) =>
+            k = "#{d.properties.State}-#{d.properties.PUMA5}"
+            val = db.pumas[k].upper / db.pumas[k].total
+            return upperscale(val)
+          )
 
       console.log "maDe path"
 
