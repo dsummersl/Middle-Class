@@ -64,38 +64,8 @@ task 'server', 'database server', ->
     )
 
   app.get '/classes/all/:lm/:mu', (req,res) -> groupSearch(req,res,req.params.lm,req.params.mu,{})
-
-  # get the counts for a specific puma: lm is the boundary between lower middle and mu is the boundary between middle and upper.
-  # TODO these individual puma searches dont' work - they need to include the state in the parameters.
-  finishSearch = (search,req,res) ->
-    Entry.findOne {puma: req.params.puma}, (err,doc) ->
-      if err or doc?.puma != req.params.puma
-        console.log "Error: #{err}"
-        res.json {result: "failure", extra: "#{err} (no puma)"}
-        return
-      search.select('puma','incomecount')
-        .run (err,doc) ->
-          if err
-            console.log "Error: #{err}"
-            res.json {result: "failure", extra: err}
-            return
-          total = 0
-          total += parseInt(i.incomecount) for i in doc
-          res.json {result: "success", puma: req.params.puma, total: total}
-
-  app.get '/classes/:puma/lte/:mu', (req,res) ->
-    counts = Entry.where('puma').equals(req.params.puma)
-      .where('income').lte(req.params.mu)
-    finishSearch(counts,req,res)
-  app.get '/classes/:puma/gt/:lm', (req,res) ->
-    counts = Entry.where('puma').equals(req.params.puma)
-      .where('income').gt(req.params.lm)
-    finishSearch(counts,req,res)
-  app.get '/classes/:puma/:lm/:mu', (req,res) ->
-    counts = Entry.where('puma').equals(req.params.puma)
-      .where('income').gt(req.params.lm)
-      .where('income').lte(req.params.mu)
-    finishSearch(counts,req,res)
+  # TODO this specific filter be returning blanks
+  app.get '/classes/:state/:puma/:lm/:mu', (req,res) -> groupSearch(req,res,req.params.lm,req.params.mu,{ $and: [state: req.params.state, puma: req.params.puma ]})
 
   app.use(express.static("#{__dirname}/public"))
 
