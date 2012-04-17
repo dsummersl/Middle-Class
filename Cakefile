@@ -11,7 +11,8 @@ task 'copyDependencies', 'For whatever reason spine sucks at using NPM modules -
   exec 'npm install .', execHandler
   exec 'cp node_modules/d3/d3.v2.js app/lib', execHandler
 
-option '-t','--type [TYPE]', 'Type of map to generate (1percent = SPUMA, 5percent = PUMA)'
+option '-p','--param [EXTRA]', 'Extra Param - see task'
+#option '-p','--param [EXTRA]', 'Type of map to generate (1percent = SPUMA, 5percent = PUMA)'
 
 zeroFill = ( number, width ) ->
   width -= number.toString().length
@@ -21,6 +22,7 @@ zeroFill = ( number, width ) ->
 dbconnect = ->
   mongoose = require('mongoose')
   db = mongoose.connect('mongodb://localhost/middleclass')
+  # TODO add a new schema with the results - store the mapreduce results
   EntrySchema = new mongoose.Schema()
   EntrySchema.add
     puma: { type: String, index: true }
@@ -31,7 +33,15 @@ dbconnect = ->
     income: Number
     incomecount: Number
   Entry = mongoose.model('Entry', EntrySchema)
-  return [db,Entry]
+  GroupedSchema = new mongoose.Schema()
+  GroupedSchema.add
+    params: { type: String, index: true }
+    puma: String
+    state: Number
+    lower: Number
+    middle: Number
+    upper: Number
+  return [db,Entry,Grouped]
 
 task 'server', 'database server', ->
   conn = dbconnect()
@@ -72,34 +82,78 @@ task 'server', 'database server', ->
   console.log "Started server on port 3333"
   app.listen(3333)
 
-task 'processdata', 'move the data into mongoose', ->
-  #exec 'r --no-save < bin/groupState.r', (error,stdout,stderr) ->
-  exec 'echo no', (error,stdout,stderr) ->
-    console.log "Generated stats, importing into db..."
-    csv = require('ya-csv')
-    reader = csv.createCsvFileReader('out.csv', {columnsFromHeader: true})
-    cnt = 0
-    conn = dbconnect()
-    db = conn[0]
-    Entry = conn[1]
-    Entry.collection.drop()
-    reader.addListener 'data', (data)=>
-      #console.log "saving #{cnt}: #{data.PUMA} - #{data.School}"
-      entry = new Entry
-        puma: zeroFill(data.PUMA,6)
-        state: parseInt(data.State)
-        sex: (data.Sex == "1")
-        age: parseInt(data.Age)
-        school: parseInt(data.School)
-        income: parseInt(data.Income)
-        incomecount: parseInt(data.IncomeCount)
-      cnt++
-      entry.save (err) ->
-        console.log "Error saving..." if err
-        cnt--
-    reader.addListener 'end', () =>
-      console.log "DONE"
-      #db.disconnect()
+task 'manualprocess', '', ->
+  conn = dbconnect()
+  db = conn[0]
+  Entry = conn[1]
+  csv = require('ya-csv')
+  reader = csv.createCsvFileReader('out.csv', {columnsFromHeader: true})
+  cnt = 0
+  reader.addListener 'data', (data)=>
+    console.log "saving #{cnt}: #{data.State}-#{data.PUMA}" if cnt % 1000 == 0
+    Entry.collection.remove({ state: parseInt(data.State) }) if cnt == 0
+    entry = new Entry
+      puma: zeroFill(data.PUMA,6)
+      state: parseInt(data.State)
+      sex: (data.Sex == "1")
+      age: parseInt(data.Age)
+      school: parseInt(data.School)
+      income: parseInt(data.Income)
+      incomecount: parseInt(data.IncomeCount)
+    cnt++
+    entry.save (err) ->
+      console.log "Error saving..." if err
+      cnt--
+  reader.addListener 'end', () =>
+    console.log "DONE"
+    done(listIndex+1,done)
+    #db.disconnect()
+
+task 'processdata', 'move the census data into mongodb (data should be in /Volumes/My Book/data external drive)', (options) ->
+  # Strangely I had a couple problems importing these files:
+  #  - iowa...had one fewer income bracket than every other state.
+  #  - texas...had the largest CSV file. I had to split it in half in order for R to process the thing (its about a gig)
+  #    wc ss10ptx.csv
+  #    split -l 587063 ss10ptx.csv ss10ptxsplit.csv
+  #    manually put the first line onto the second split file.
+  conn = dbconnect()
+  db = conn[0]
+  Entry = conn[1]
+  fs.readdir '/Volumes/My Book/data/', (err,list) =>
+    fn = (listIndex,done) =>
+      console.log "i = #{listIndex}"
+      return if listIndex >= list.length
+      file = list[listIndex]
+      if /csv$/.test(file) && /pia.csv$/.test(file)
+        console.log "r --no-save --args /Volumes/My\\ Book/data/#{file} < bin/groupState.r"
+        exec "r --no-save --args /Volumes/My\\ Book/data/#{file} < bin/groupState.r", (error,stdout,stderr) ->
+          console.log "Generated #{file}, importing into db..."
+          csv = require('ya-csv')
+          reader = csv.createCsvFileReader('out.csv', {columnsFromHeader: true})
+          cnt = 0
+          reader.addListener 'data', (data)=>
+            console.log "saving #{cnt}: #{data.State}-#{data.PUMA}" if cnt % 1000 == 0
+            # TODO don't remove those that have been split up:
+            Entry.collection.remove({ state: parseInt(data.State) }) if cnt == 0
+            entry = new Entry
+              puma: zeroFill(data.PUMA,6)
+              state: parseInt(data.State)
+              sex: (data.Sex == "1")
+              age: parseInt(data.Age)
+              school: parseInt(data.School)
+              income: parseInt(data.Income)
+              incomecount: parseInt(data.IncomeCount)
+            cnt++
+            entry.save (err) ->
+              console.log "Error saving..." if err
+              cnt--
+          reader.addListener 'end', () =>
+            console.log "DONE"
+            done(listIndex+1,done)
+            #db.disconnect()
+      else
+        done(listIndex+1,done)
+    fn(0,fn)
 
 task 'mapcommands', 'build commands to build map', (options) ->
   # TODO states to remove: 72 (puerto rico)?

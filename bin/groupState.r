@@ -1,5 +1,6 @@
 #samples <- read.csv("csv_hnc/ss10hnc.csv")
-samples <- read.csv("csv_pnc/ss10pnc.csv")
+#samples <- read.csv('/Volumes/My\ Book/data/ss10ptxsplit1.csv')
+samples <- read.csv(commandArgs(TRUE))
 
 # group by:
 # PUMA = public use micro area
@@ -25,6 +26,7 @@ samples <- read.csv("csv_pnc/ss10pnc.csv")
 # FINC = family income
 
 schoolGroups <- c('NA','None','Preschool','<=6th','<=8th','9th','10th','11th','12th','Highschool Grad','<1yr college','1+yr college','associates','bachelors','masters','professional','doctorate')
+# http://www.sigmafield.org/2009/09/23/r-function-of-the-day-cut
 groups <- with(samples, ftable(
   ST,
   PUMA, 
@@ -41,8 +43,10 @@ data <- subset(data,Freq > 0)
 
 colnames(data) <- c('State','PUMA','Sex','Age','School','Income','IncomeCount')
 
-# replace all the string funkiness with ints
 data$Age <- factor(data$Age,labels=c(17,24,30,34,39,49,59,100))
-data$Income <- factor(data$Income,labels=c(seq(2,20,by=2)*10,10000))
+# change the levels so that they match the incomes that actually exist
+# TODO wrong wrong wrong...need to fix this for texas and for iowa
+#c("(0,2e+04]","(2e+04,4e+04]","(4e+04,6e+04]","(6e+04,8e+04]","(8e+04,1e+05]","(1e+05,1.2e+05]","(1.2e+05,1.4e+05]","(1.4e+05,1.6e+05]","(1.6e+05,1.8e+05]","(1.8e+05,2e+05]","(2e+05,Inf]")
+data$Income <- factor(data$Income,labels=c(seq(0,18,by=2)*10,100000))
 
 write.csv(data,file="out.csv",row.names=FALSE)

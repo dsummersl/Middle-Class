@@ -45,11 +45,12 @@ class App extends Spine.Controller
           if db.pumas[k]?
             features.push(d)
             db.pumas[k].total = db.pumas[k].lower + db.pumas[k].middle + db.pumas[k].upper
-        lowscale = d3.scale.linear().domain([0,1]).range(['rgba(255,0,0,0)','rgba(255,0,0,.8)'])
-        middlescale = d3.scale.linear().domain([0,1]).range(['rgba(0,255,0,0)','rgba(0,255,0,.8)'])
-        upperscale = d3.scale.linear().domain([0,1]).range(['rgba(0,0,255,0)','rgba(0,0,255,.8)'])
+        lowscale = d3.scale.linear().domain([0,1]).range(['rgba(255,0,0,0)','rgba(255,0,0,1)'])
+        middlescale = d3.scale.linear().domain([0,1]).range(['rgba(0,255,0,0)','rgba(0,255,0,1)'])
+        upperscale = d3.scale.linear().domain([0,1]).range(['rgba(0,0,255,0)','rgba(0,0,255,1)'])
         #console.log "map = "+ ("#{d.properties.State}-#{d.properties.PUMA5}-#{d.properties.PERIMETER}" for d in json.features)
         #console.log "mat = "+ ("#{d.properties.State}-#{d.properties.PUMA5}-#{d.properties.PERIMETER}" for d in features)
+        #TODO 22-01905 -- is combined with xxx b/c of population displacement
         svg.selectAll(".lower")
           .data(features, (d) -> "#{d.properties.State}-#{d.properties.PUMA5}-#{d.properties.PERIMETER}")
           .transition()
