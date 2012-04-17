@@ -34,7 +34,7 @@ groups <- with(samples, ftable(
   cut(AGEP,breaks=c(0,18,25,30,35,40,50,60,Inf)),
   #cut(SCHL,breaks=c(NA,seq(1,16)),labels=schoolGroups),
   SCHL,
-  cut(PINCP,breaks=c(seq(0,20,by=2)*10000,Inf))
+  cut(PINCP,breaks=c(seq(1,20)*5000,Inf))
 ))
 
 # so I do this, to filter out the non-events:
@@ -47,6 +47,6 @@ data$Age <- factor(data$Age,labels=c(17,24,30,34,39,49,59,100))
 # change the levels so that they match the incomes that actually exist
 # TODO wrong wrong wrong...need to fix this for texas and for iowa
 #c("(0,2e+04]","(2e+04,4e+04]","(4e+04,6e+04]","(6e+04,8e+04]","(8e+04,1e+05]","(1e+05,1.2e+05]","(1.2e+05,1.4e+05]","(1.4e+05,1.6e+05]","(1.6e+05,1.8e+05]","(1.8e+05,2e+05]","(2e+05,Inf]")
-data$Income <- factor(data$Income,labels=c(seq(0,18,by=2)*10,100000))
+data$Income <- factor(data$Income,labels=c(seq(1,19)*5,100000))
 
 write.csv(data,file="out.csv",row.names=FALSE)

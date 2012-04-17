@@ -6,8 +6,8 @@ class App extends Spine.Controller
   constructor: ->
     super
     @log "starting..."
+    $('#startuptext').text("Loading map...")
     d3.json "svg/5percent-combined.geojson", (json)=>
-      @log "loaded map"
       path = d3.geo.path()
       console.log "maKe path"
       svg = d3.select('#map').append('svg')
@@ -37,6 +37,7 @@ class App extends Spine.Controller
         .attr('class','part upper')
         .attr('d',path)
 
+      $('#startuptext').text("Loading stats...")
       d3.json 'http://localhost:3333/classes/all/25/65', (db) ->
         console.log "got stats"
         features = []
@@ -78,8 +79,7 @@ class App extends Spine.Controller
             val = db.pumas[k].upper / db.pumas[k].total
             return upperscale(val)
           )
-
-      console.log "maDe path"
+        $('#startupdialog').fadeOut()
 
 module.exports = App
     

@@ -109,12 +109,14 @@ task 'manualprocess', '', ->
   conn = dbconnect()
   db = conn[0]
   Entry = conn[1]
+  Grouped = conn[2]
   csv = require('ya-csv')
   reader = csv.createCsvFileReader('out.csv', {columnsFromHeader: true})
   cnt = 0
   reader.addListener 'data', (data)=>
     console.log "saving #{cnt}: #{data.State}-#{data.PUMA}" if cnt % 1000 == 0
     Entry.collection.remove({ state: parseInt(data.State) }) if cnt == 0
+    Grouped.collection.remove({ state: parseInt(data.State) }) if cnt == 0
     entry = new Entry
       puma: zeroFill(data.PUMA,6)
       state: parseInt(data.State)
