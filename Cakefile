@@ -41,36 +41,59 @@ dbconnect = ->
     lower: Number
     middle: Number
     upper: Number
+  Grouped = mongoose.model('Grouped', GroupedSchema)
   return [db,Entry,Grouped]
 
 task 'server', 'database server', ->
   conn = dbconnect()
   db = conn[0]
   Entry = conn[1]
+  Grouped = conn[2]
   express = require('express')
   app = express.createServer()
 
   groupSearch = (req,res,lowmarker,middlemarker,condition) ->
-    grp = (doc,out) =>
-      out.lower += doc.incomecount if doc.income <= out.lowmarker
-      out.middle += doc.incomecount if doc.income <= out.middlemarker and doc.income > out.lowmarker
-      out.upper += doc.incomecount if doc.income > out.middlemarker
-    done = (err,doc) ->
+    # first see if there are any entries already
+    Grouped.find({ params: "#{lowmarker}-#{middlemarker}" }, (err,docs) =>
       if err
         console.log "Error: #{err}"
         res.json {result: "failure", extra: err}
         return
-      done = {}
-      done["#{i.state}-#{i.puma}"] = i for i in doc
-      res.json { result: "success", pumas: done }
-    Entry.collection.group(
-      {state: true, puma:true},     # keys
-      condition,                    # condition
-      {lower: 0, middle: 0, upper: 0, lowmarker: lowmarker, middlemarker: middlemarker },# initial
-      grp,                          # reduce
-      null,                         # finalize
-      null,                         # command
-      done                          # callback
+      if docs.length > 0
+        done = {}
+        done["#{i.state}-#{i.puma}"] = i for i in docs
+        res.json { result: "success", pumas: done }
+        return
+      grp = (doc,out) =>
+        out.lower += doc.incomecount if doc.income <= out.lowmarker
+        out.middle += doc.incomecount if doc.income <= out.middlemarker and doc.income > out.lowmarker
+        out.upper += doc.incomecount if doc.income > out.middlemarker
+      done = (err,doc) =>
+        if err
+          console.log "Error: #{err}"
+          res.json {result: "failure", extra: err}
+          return
+        done = {}
+        done["#{i.state}-#{i.puma}"] = i for i in doc
+        for d in doc
+          g = new Grouped
+            params: "#{d.lowmarker}-#{d.middlemarker}"
+            puma: d.puma
+            state: d.state
+            lower: d.lower
+            middle: d.middle
+            upper: d.upper
+          g.save (err) -> console.log "Error saving..." if err
+        res.json { result: "success", pumas: done }
+      Entry.collection.group(
+        {state: true, puma:true},     # keys
+        condition,                    # condition
+        {lower: 0, middle: 0, upper: 0, lowmarker: lowmarker, middlemarker: middlemarker },# initial
+        grp,                          # reduce
+        null,                         # finalize
+        null,                         # command
+        done                          # callback
+      )
     )
 
   app.get '/classes/all/:lm/:mu', (req,res) -> groupSearch(req,res,req.params.lm,req.params.mu,{})
