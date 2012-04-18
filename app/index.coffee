@@ -11,13 +11,6 @@ class App extends Spine.Controller
       path = d3.geo.path()
       console.log "maKe path"
       svg = d3.select('#map').append('svg')
-        .append('g')
-        .attr('id', 'mapgraphic')
-        .append('g')
-        .call(d3.behavior.zoom().on("zoom", ()=>
-          parts.attr("transform", "translate(#{d3.event.translate}) scale(#{d3.event.scale})")
-        ))
-        .append('g')
       parts = svg.selectAll('.part')
         .data(json.features, (d) -> "#{d.properties.State}-#{d.properties.PUMA5}-#{d.properties.PERIMETER}")
 
@@ -26,11 +19,19 @@ class App extends Spine.Controller
         .attr('id', (d)-> "lower-#{d.properties.State}-#{d.properties.PUMA5}-#{d.properties.PERIMETER}")
         .attr('class','part lower')
         .attr('d',path)
+
+      svg = d3.select('#map').append('svg')
+      parts = svg.selectAll('.part')
+        .data(json.features, (d) -> "#{d.properties.State}-#{d.properties.PUMA5}-#{d.properties.PERIMETER}")
       parts.enter()
         .append('path')
         .attr('id', (d)-> "middle-#{d.properties.State}-#{d.properties.PUMA5}-#{d.properties.PERIMETER}")
         .attr('class','part middle')
         .attr('d',path)
+
+      svg = d3.select('#map').append('svg')
+      parts = svg.selectAll('.part')
+        .data(json.features, (d) -> "#{d.properties.State}-#{d.properties.PUMA5}-#{d.properties.PERIMETER}")
       parts.enter()
         .append('path')
         .attr('id', (d)-> "upper-#{d.properties.State}-#{d.properties.PUMA5}-#{d.properties.PERIMETER}")
@@ -49,10 +50,8 @@ class App extends Spine.Controller
         lowscale = d3.scale.linear().domain([0,1]).range(['rgba(255,0,0,0)','rgba(255,0,0,1)'])
         middlescale = d3.scale.linear().domain([0,1]).range(['rgba(0,255,0,0)','rgba(0,255,0,1)'])
         upperscale = d3.scale.linear().domain([0,1]).range(['rgba(0,0,255,0)','rgba(0,0,255,1)'])
-        #console.log "map = "+ ("#{d.properties.State}-#{d.properties.PUMA5}-#{d.properties.PERIMETER}" for d in json.features)
-        #console.log "mat = "+ ("#{d.properties.State}-#{d.properties.PUMA5}-#{d.properties.PERIMETER}" for d in features)
         #TODO 22-01905 -- is combined with xxx b/c of population displacement
-        svg.selectAll(".lower")
+        d3.selectAll(".lower")
           .data(features, (d) -> "#{d.properties.State}-#{d.properties.PUMA5}-#{d.properties.PERIMETER}")
           .transition()
           .delay(300)
@@ -61,7 +60,7 @@ class App extends Spine.Controller
             val = db.pumas[k].lower / db.pumas[k].total
             return lowscale(val)
           )
-        svg.selectAll(".middle")
+        d3.selectAll(".middle")
           .data(features, (d) -> "#{d.properties.State}-#{d.properties.PUMA5}-#{d.properties.PERIMETER}")
           .transition()
           .delay(300)
@@ -70,7 +69,7 @@ class App extends Spine.Controller
             val = db.pumas[k].middle / db.pumas[k].total
             return middlescale(val)
           )
-        svg.selectAll(".upper")
+        d3.selectAll(".upper")
           .data(features, (d) -> "#{d.properties.State}-#{d.properties.PUMA5}-#{d.properties.PERIMETER}")
           .transition()
           .delay(300)
