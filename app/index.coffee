@@ -11,6 +11,47 @@ class App extends Spine.Controller
       path = d3.geo.path()
       console.log "maKe path"
       svg = d3.select('#map').append('svg')
+      defs = svg.append('defs')
+      p = defs.append('pattern')
+        .attr('id', 'lowerpattern')
+        .attr('patternUnits', 'userSpaceOnUse')
+        .attr('x',0)
+        .attr('y',0)
+        .attr('width',10)
+        .attr('height',10)
+        .attr('viewBox','0 0 5 5')
+      p.append('rect')
+        .attr('x',0)
+        .attr('y',0)
+        .attr('width', 2.5)
+        .attr('height', 2.5)
+        .attr('fill', 'red')
+      p.append('rect')
+        .attr('x',2.5)
+        .attr('y',2.5)
+        .attr('width', 2.5)
+        .attr('height', 2.5)
+        .attr('fill', 'red')
+      p = defs.append('pattern')
+        .attr('id', 'middlepattern')
+        .attr('patternUnits', 'userSpaceOnUse')
+        .attr('x',0)
+        .attr('y',0)
+        .attr('width',10)
+        .attr('height',10)
+        .attr('viewBox','0 0 5 5')
+      p.append('rect')
+        .attr('x',2.5)
+        .attr('y',0)
+        .attr('width', 2.5)
+        .attr('height', 2.5)
+        .attr('fill', 'green')
+      p.append('rect')
+        .attr('x',0)
+        .attr('y',2.5)
+        .attr('width', 2.5)
+        .attr('height', 2.5)
+        .attr('fill', 'green')
       parts = svg.selectAll('.part')
         .data(json.features, (d) -> "#{d.properties.State}-#{d.properties.PUMA5}-#{d.properties.PERIMETER}")
 
@@ -20,18 +61,22 @@ class App extends Spine.Controller
         .attr('class','part lower')
         .attr('d',path)
 
+      ###
       svg = d3.select('#map').append('svg')
       parts = svg.selectAll('.part')
         .data(json.features, (d) -> "#{d.properties.State}-#{d.properties.PUMA5}-#{d.properties.PERIMETER}")
+      ###
       parts.enter()
         .append('path')
         .attr('id', (d)-> "middle-#{d.properties.State}-#{d.properties.PUMA5}-#{d.properties.PERIMETER}")
         .attr('class','part middle')
         .attr('d',path)
 
+      ###
       svg = d3.select('#map').append('svg')
       parts = svg.selectAll('.part')
         .data(json.features, (d) -> "#{d.properties.State}-#{d.properties.PUMA5}-#{d.properties.PERIMETER}")
+      ###
       parts.enter()
         .append('path')
         .attr('id', (d)-> "upper-#{d.properties.State}-#{d.properties.PUMA5}-#{d.properties.PERIMETER}")
@@ -54,29 +99,34 @@ class App extends Spine.Controller
         d3.selectAll(".lower")
           .data(features, (d) -> "#{d.properties.State}-#{d.properties.PUMA5}-#{d.properties.PERIMETER}")
           .transition()
-          .delay(300)
-          .style('fill', (d) =>
+          .delay(1000)
+          .attr('fill',"url(#lowerpattern)")
+          .attr('opacity', (d) =>
             k = "#{d.properties.State}-#{d.properties.PUMA5}"
             val = db.pumas[k].lower / db.pumas[k].total
-            return lowscale(val)
+            Math.random()
+            #return lowscale(val)
           )
         d3.selectAll(".middle")
           .data(features, (d) -> "#{d.properties.State}-#{d.properties.PUMA5}-#{d.properties.PERIMETER}")
           .transition()
-          .delay(300)
-          .style('fill', (d) =>
+          .delay(1000)
+          .attr('fill',"url(#middlepattern)")
+          .attr('opacity', (d) =>
             k = "#{d.properties.State}-#{d.properties.PUMA5}"
             val = db.pumas[k].middle / db.pumas[k].total
-            return middlescale(val)
+            Math.random()
+            #return middlescale(val)
           )
         d3.selectAll(".upper")
           .data(features, (d) -> "#{d.properties.State}-#{d.properties.PUMA5}-#{d.properties.PERIMETER}")
           .transition()
-          .delay(300)
-          .style('fill', (d) =>
+          .delay(1000)
+          .style('opacity', (d) =>
             k = "#{d.properties.State}-#{d.properties.PUMA5}"
             val = db.pumas[k].upper / db.pumas[k].total
-            return upperscale(val)
+            Math.random()
+            #return upperscale(val)
           )
         $('#startupdialog').fadeOut()
 
