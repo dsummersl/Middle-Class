@@ -212,7 +212,9 @@ task 'mapcommands', 'build commands to build map', (options) ->
           cmds.push "ogr2ogr -f 'ESRI Shapefile' t.shp tt.geojson"
           cmds.push "ogr2ogr -update -append #{dir}-combined.shp t.shp -nln #{dir}-combined"
     console.log i for i in cmds
-    console.log "ogr2ogr -f 'GeoJSON' #{dir}-combined.geojson #{dir}-combined.shp"
+    # simplify as much as possible (high a double as posible) w/o losing clarity (this makes the
+    # file go from 21megs to 2 megs):
+    console.log "ogr2ogr -f 'GeoJSON' -simplify 0.02 #{dir}-combined.geojson #{dir}-combined.shp"
     console.log "rm #{dir}-combined.shp"
     console.log "mv #{dir}-combined.geojson public/svg"
 
