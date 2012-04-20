@@ -12,6 +12,8 @@ class App extends Spine.Controller
       console.log "maKe path"
       svg = d3.select('#map').append('svg')
       defs = svg.append('defs')
+      # Using this URL to pass params to my patterns:
+      # http://www.w3.org/TR/2009/WD-SVGParamPrimer-20090430/#URLParameters
       p = defs.append('pattern')
         .attr('id', 'lowerpattern')
         .attr('patternUnits', 'userSpaceOnUse')
@@ -104,7 +106,6 @@ class App extends Spine.Controller
           .attr('opacity', (d) =>
             k = "#{d.properties.State}-#{d.properties.PUMA5}"
             val = db.pumas[k].lower / db.pumas[k].total
-            Math.random()
             #return lowscale(val)
           )
         d3.selectAll(".middle")
@@ -115,17 +116,16 @@ class App extends Spine.Controller
           .attr('opacity', (d) =>
             k = "#{d.properties.State}-#{d.properties.PUMA5}"
             val = db.pumas[k].middle / db.pumas[k].total
-            Math.random()
             #return middlescale(val)
           )
         d3.selectAll(".upper")
           .data(features, (d) -> "#{d.properties.State}-#{d.properties.PUMA5}-#{d.properties.PERIMETER}")
           .transition()
           .delay(1000)
+          .attr('fill', 'blue')
           .style('opacity', (d) =>
             k = "#{d.properties.State}-#{d.properties.PUMA5}"
             val = db.pumas[k].upper / db.pumas[k].total
-            Math.random()
             #return upperscale(val)
           )
         $('#startupdialog').fadeOut()
