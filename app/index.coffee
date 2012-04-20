@@ -86,14 +86,29 @@ class App extends Spine.Controller
         .attr('d',path)
 
       $('#startuptext').text("Loading stats...")
-      d3.json 'http://localhost:3333/classes/all/25/65', (db) ->
-        console.log "got stats"
+      d3.json 'http://localhost:3333/classes/all/20/90', (db) ->
         features = []
         for d in json.features
           k = "#{d.properties.State}-#{d.properties.PUMA5}"
           if db.pumas[k]?
             features.push(d)
             db.pumas[k].total = db.pumas[k].lower + db.pumas[k].middle + db.pumas[k].upper
+
+        lCnt = 0
+        mCnt = 0
+        uCnt = 0
+        lSum = 0
+        mSum = 0
+        uSum = 0
+        for k,v of db.pumas
+          lCnt += v.lower
+          mCnt += v.middle
+          uCnt += v.upper
+          lSum += v.lAmount
+          mSum += v.mAmount
+          uSum += v.uAmount
+        console.log "Total sums LMU = #{lCnt},#{mCnt},#{uCnt}  #{lSum},#{mSum},#{uSum} #{lSum/lCnt},#{mSum/mCnt},#{uSum/uCnt}"
+
         lowscale = d3.scale.linear().domain([0,1]).range(['rgba(255,0,0,0)','rgba(255,0,0,1)'])
         middlescale = d3.scale.linear().domain([0,1]).range(['rgba(0,255,0,0)','rgba(0,255,0,1)'])
         upperscale = d3.scale.linear().domain([0,1]).range(['rgba(0,0,255,0)','rgba(0,0,255,1)'])

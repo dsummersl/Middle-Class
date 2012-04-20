@@ -41,6 +41,9 @@ dbconnect = ->
     lower: Number
     middle: Number
     upper: Number
+    lAmount: Number
+    mAmount: Number
+    uAmount: Number
   Grouped = mongoose.model('Grouped', GroupedSchema)
   return [db,Entry,Grouped]
 
@@ -53,12 +56,14 @@ task 'server', 'database server', ->
   app = express.createServer()
 
   groupSearch = (req,res,lowmarker,middlemarker,condition) ->
+    console.log "group search..."
     # first see if there are any entries already
     Grouped.find({ params: "#{lowmarker}-#{middlemarker}" }, (err,docs) =>
       if err
         console.log "Error: #{err}"
         res.json {result: "failure", extra: err}
         return
+      console.log "groups found: #{docs.length}"
       if docs.length > 0
         done = {}
         done["#{i.state}-#{i.puma}"] = i for i in docs
@@ -68,11 +73,15 @@ task 'server', 'database server', ->
         out.lower += doc.incomecount if doc.income <= out.lowmarker
         out.middle += doc.incomecount if doc.income <= out.middlemarker and doc.income > out.lowmarker
         out.upper += doc.incomecount if doc.income > out.middlemarker
+        out.lAmount += doc.income*doc.incomecount if doc.income <= out.lowmarker
+        out.mAmount += doc.income*doc.incomecount if doc.income <= out.middlemarker and doc.income > out.lowmarker
+        out.uAmount += doc.income*doc.incomecount if doc.income > out.middlemarker
       done = (err,doc) =>
         if err
           console.log "Error: #{err}"
           res.json {result: "failure", extra: err}
           return
+        console.log "found from entries: #{doc.length}"
         done = {}
         done["#{i.state}-#{i.puma}"] = i for i in doc
         for d in doc
@@ -83,12 +92,19 @@ task 'server', 'database server', ->
             lower: d.lower
             middle: d.middle
             upper: d.upper
+            lAmount: d.lAmount
+            mAmount: d.mAmount
+            uAmount: d.uAmount
           g.save (err) -> console.log "Error saving..." if err
         res.json { result: "success", pumas: done }
       Entry.collection.group(
         {state: true, puma:true},     # keys
         condition,                    # condition
-        {lower: 0, middle: 0, upper: 0, lowmarker: lowmarker, middlemarker: middlemarker },# initial
+        {
+          lower: 0, middle: 0, upper: 0,
+          lowmarker: lowmarker, middlemarker: middlemarker,
+          lAmount: 0, mAmount: 0, uAmount: 0
+        },
         grp,                          # reduce
         null,                         # finalize
         null,                         # command
