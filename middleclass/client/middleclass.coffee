@@ -16,6 +16,35 @@ Template.popups.events =
 		# of these properties have changed...this 'set' should be
 		# atomic
 
+# This class will manage the visibility of a specific item. You specify
+# the timeout and the item, and it will ensure that if the mouse moves
+# a button is visible for at least X ms. Once its visible as long
+# as the mouse moves. Once its invisible the button will appear within
+# a second.
+class VisibleOnMovementItem
+	constructor: (item,ms) ->
+		@item = item
+		@ms = ms
+		@lastEvent = new Date().getTime()
+		fn = => @checkFade()
+		Meteor.setInterval(fn,@ms/2)
+		$('body').mousemove (e) =>
+			@lastEvent = (new Date()).getTime()
+			#console.log "mouse move: #{@lastEvent} - should be #{new Date().getTime()}"
+	isVisible: => $(@item).is(':visible')
+	checkFade: =>
+		#console.log "checking: #{@lastEvent}"
+		if @isVisible()
+			# if there has been no movement in the last @ms then fade out:
+			change = new Date().getTime() > @lastEvent + @ms
+			#console.log "v - #{@item} = fade out? #{change}"
+			$(@item).fadeOut() if change
+		else
+			# if there has been any movement recently, then fade in.
+			change = @lastEvent + 1000 > new Date().getTime()
+			#console.log "i - #{@item} = fade in? #{change}"
+			$(@item).fadeIn() if change
+
 Meteor.startup ->
 	d3.json "svg/5percent-combined.geojson", (json) ->
 		path = d3.geo.path()
@@ -81,6 +110,7 @@ Meteor.startup ->
 			.attr('class','part upper')
 			.attr('d',path)
 		$('#startupdialog').fadeOut()
+		new VisibleOnMovementItem('#optionsbutton',3000)
 
 		Meteor.call('getGroup', Session.get('lowmarker'), Session.get('middlemarker'), (err, result) ->
 			if err
