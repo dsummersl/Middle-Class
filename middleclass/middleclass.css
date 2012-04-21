@@ -4,17 +4,17 @@
   fill: #aaa;
 }
 
+/*
 #mapgraphic {
   border: 1px solid #000;
 }
-
-/*
-.part
-  opacity: .2
-  fill: #aaa
 */
 
 .icon: {
   fill: #fff;
   color: #fff;
+}
+
+#classesdialog {
+	visibility: hidden;
 }
