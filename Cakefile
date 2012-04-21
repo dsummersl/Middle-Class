@@ -12,114 +12,11 @@ task 'copyDependencies', 'For whatever reason spine sucks at using NPM modules -
   exec 'cp node_modules/d3/d3.v2.js app/lib', execHandler
 
 option '-p','--param [EXTRA]', 'Extra Param - see task'
-#option '-p','--param [EXTRA]', 'Type of map to generate (1percent = SPUMA, 5percent = PUMA)'
 
 zeroFill = ( number, width ) ->
   width -= number.toString().length
   return new Array( width + (/\./.test( number ) ? 2 : 1) ).join( '0' ) + number if width > 0
   return number
-
-dbconnect = ->
-  mongoose = require('mongoose')
-  db = mongoose.connect('mongodb://localhost/middleclass')
-  # TODO add a new schema with the results - store the mapreduce results
-  EntrySchema = new mongoose.Schema()
-  EntrySchema.add
-    puma: { type: String, index: true }
-    state: { type: Number, index: true }
-    sex: Boolean
-    age: Number
-    school: Number
-    income: Number
-    incomecount: Number
-  Entry = mongoose.model('Entry', EntrySchema)
-  GroupedSchema = new mongoose.Schema()
-  GroupedSchema.add
-    params: { type: String, index: true }
-    puma: String
-    state: Number
-    lower: Number
-    middle: Number
-    upper: Number
-    lAmount: Number
-    mAmount: Number
-    uAmount: Number
-  Grouped = mongoose.model('Grouped', GroupedSchema)
-  return [db,Entry,Grouped]
-
-task 'server', 'database server', ->
-  conn = dbconnect()
-  db = conn[0]
-  Entry = conn[1]
-  Grouped = conn[2]
-  express = require('express')
-  app = express.createServer()
-
-  groupSearch = (req,res,lowmarker,middlemarker,condition) ->
-    console.log "group search..."
-    # first see if there are any entries already
-    Grouped.find({ params: "#{lowmarker}-#{middlemarker}" }, (err,docs) =>
-      if err
-        console.log "Error: #{err}"
-        res.json {result: "failure", extra: err}
-        return
-      console.log "groups found: #{docs.length}"
-      if docs.length > 0
-        done = {}
-        done["#{i.state}-#{i.puma}"] = i for i in docs
-        res.json { result: "success", pumas: done }
-        return
-      grp = (doc,out) =>
-        out.lower += doc.incomecount if doc.income <= out.lowmarker
-        out.middle += doc.incomecount if doc.income <= out.middlemarker and doc.income > out.lowmarker
-        out.upper += doc.incomecount if doc.income > out.middlemarker
-        out.lAmount += doc.income*doc.incomecount if doc.income <= out.lowmarker
-        out.mAmount += doc.income*doc.incomecount if doc.income <= out.middlemarker and doc.income > out.lowmarker
-        out.uAmount += doc.income*doc.incomecount if doc.income > out.middlemarker
-      done = (err,doc) =>
-        if err
-          console.log "Error: #{err}"
-          res.json {result: "failure", extra: err}
-          return
-        console.log "found from entries: #{doc.length}"
-        done = {}
-        done["#{i.state}-#{i.puma}"] = i for i in doc
-        for d in doc
-          g = new Grouped
-            params: "#{d.lowmarker}-#{d.middlemarker}"
-            puma: d.puma
-            state: d.state
-            lower: d.lower
-            middle: d.middle
-            upper: d.upper
-            lAmount: d.lAmount
-            mAmount: d.mAmount
-            uAmount: d.uAmount
-          g.save (err) -> console.log "Error saving..." if err
-        res.json { result: "success", pumas: done }
-      Entry.collection.group(
-        {state: true, puma:true},     # keys
-        condition,                    # condition
-        {
-          lower: 0, middle: 0, upper: 0,
-          lowmarker: lowmarker, middlemarker: middlemarker,
-          lAmount: 0, mAmount: 0, uAmount: 0
-        },
-        grp,                          # reduce
-        null,                         # finalize
-        null,                         # command
-        done                          # callback
-      )
-    )
-
-  app.get '/classes/all/:lm/:mu', (req,res) -> groupSearch(req,res,req.params.lm,req.params.mu,{})
-  # TODO this specific filter be returning blanks
-  app.get '/classes/:state/:puma/:lm/:mu', (req,res) -> groupSearch(req,res,req.params.lm,req.params.mu,{ $and: [state: req.params.state, puma: req.params.puma ]})
-
-  app.use(express.static("#{__dirname}/public"))
-
-  console.log "Started server on port 3333"
-  app.listen(3333)
 
 task 'manualprocess', '', ->
   conn = dbconnect()
