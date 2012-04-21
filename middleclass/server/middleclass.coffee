@@ -28,6 +28,8 @@ dbconnect = ->
 
 promise = __meteor_bootstrap__.require('fibers-promise')
 mongoose = __meteor_bootstrap__.require('mongoose')
+# TODO I'd like to just use the bootstrap URL:
+#db = mongoose.connect(__meteor_bootstrap__.mongo_url)
 conn = dbconnect()
 db = conn[0]
 Entry = conn[1]
@@ -36,9 +38,6 @@ Entry.count({}, (err,doc) -> console.log "entry count: #{doc}")
 Grouped.count({}, (err,doc) -> console.log "grouped count: #{doc}")
 
 Meteor.methods
-	ping: ->
-		console.log "ping on server"
-		return "pong"
 	getGroup: (lowmarker,middlemarker) ->
 		console.log "group search..."
 		# first see if there are any entries already

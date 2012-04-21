@@ -1,13 +1,7 @@
-randomInt = (min, max) -> Math.floor(Math.random() * (max - min + 1)) + min
-
-###
-Template.hello.events =
-	'click input': () -> console.log("You pressed the button")
-###
 $('#startuptext').text("Loading map...")
 
-Session.set('lowmarker', null)
-Session.set('middlemarker', null)
+Session.set('lowmarker', 25)
+Session.set('middlemarker', 65)
 
 d3.json "svg/5percent-combined.geojson", (json) ->
 	path = d3.geo.path()
@@ -74,18 +68,7 @@ d3.json "svg/5percent-combined.geojson", (json) ->
 		.attr('d',path)
 	$('#startupdialog').fadeOut()
 
-  ###
-	pingMethod = ->
-		Meteor.call('ping', (err,result) ->
-			if err
-				console.log "ERROR: #{err}"
-			else
-				console.log "result = #{result} (#{Meteor.status().status})"
-		)
-	Meteor.setInterval pingMethod, 3000
-  ###
-
-	Meteor.call('getGroup', 25, 65, (err, result) ->
+	Meteor.call('getGroup', Session.get('lowmarker'), Session.get('middlemarker'), (err, result) ->
 		if err
 			console.log "ERROR: #{err}"
 		else
