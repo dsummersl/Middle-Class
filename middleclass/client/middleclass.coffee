@@ -6,16 +6,6 @@ Session.set('middlemarker', 65)
 Template.popups.lowmarker = Session.get('lowmarker')
 Template.popups.middlemarker = Session.get('middlemarker')
 
-Template.popups.events =
-	'click #cancelbutton': -> $('#classesdialog').fadeOut()
-	'click #changebutton': ->
-		$('#classesdialog').fadeOut()
-		Session.set('lowmarker', $('#lowmarker').val())
-		Session.set('middlemarker',$('#middlemarker').val())
-		# TODO I don't want things computing until BOTH
-		# of these properties have changed...this 'set' should be
-		# atomic
-
 # This class will manage the visibility of a specific item. You specify
 # the timeout and the item, and it will ensure that if the mouse moves
 # a button is visible for at least X ms. Once its visible as long
@@ -28,6 +18,7 @@ class VisibleOnMovementItem
 		@lastEvent = new Date().getTime()
 		fn = => @checkFade()
 		Meteor.setInterval(fn,@ms/2)
+		# TODO make this automatically unregister itself to minimize the overhead.
 		$('body').mousemove (e) =>
 			@lastEvent = (new Date()).getTime()
 			#console.log "mouse move: #{@lastEvent} - should be #{new Date().getTime()}"
@@ -46,6 +37,15 @@ class VisibleOnMovementItem
 			$(@item).fadeIn() if change
 
 Meteor.startup ->
+	$('#cancelbutton').click -> $('#classesdialog').modal('hide')
+	$('#changebutton').click ->
+		$('#classesdialog').modal('hide')
+		Session.set('lowmarker', $('#lowmarker').val())
+		Session.set('middlemarker',$('#middlemarker').val())
+		# TODO I don't want things computing until BOTH
+		# of these properties have changed...this 'set' should be
+		# atomic
+
 	d3.json "svg/5percent-combined.geojson", (json) ->
 		path = d3.geo.path()
 		console.log "maKe path"
@@ -109,72 +109,81 @@ Meteor.startup ->
 			.attr('id', (d)-> "upper-#{d.properties.State}-#{d.properties.PUMA5}-#{d.properties.PERIMETER}")
 			.attr('class','part upper')
 			.attr('d',path)
+
 		$('#startupdialog').fadeOut()
-		new VisibleOnMovementItem('#optionsbutton',3000)
+		new VisibleOnMovementItem('#optionsbutton',1500)
 
-		Meteor.call('getGroup', Session.get('lowmarker'), Session.get('middlemarker'), (err, result) ->
-			if err
-				console.log "ERROR: #{err}"
-			else
-				#console.log "group #s: #{(k for k,v of result).length}"
-				#console.log "g = #{k}" for k,v of result
-				$('#startuptext').text("Loading stats...")
-				#d3.json 'http://localhost:3333/classes/all/20/90', (db) ->
-				features = []
-				for d in json.features
-					k = "#{d.properties.State}-#{d.properties.PUMA5}"
-					if result[k]?
-						features.push(d)
-						result[k].total = result[k].lower + result[k].middle + result[k].upper
+		paintMap = ->
+			paintMapContext = new Meteor.deps.Context()
+			paintMapContext.on_invalidate paintMap
+			paintMapContext.run ->
+				$('#startupdialog').fadeIn()
+				console.log "starting run"
+				console.log "low and middle now #{Session.get('lowmarker')} #{Session.get('middlemarker')}"
+				Meteor.call('getGroup', Session.get('lowmarker'), Session.get('middlemarker'), (err, result) ->
+					if err
+						console.log "ERROR: #{err}"
+					else
+						#console.log "group #s: #{(k for k,v of result).length}"
+						#console.log "g = #{k}" for k,v of result
+						$('#startuptext').text("Loading stats...")
+						#d3.json 'http://localhost:3333/classes/all/20/90', (db) ->
+						features = []
+						for d in json.features
+							k = "#{d.properties.State}-#{d.properties.PUMA5}"
+							if result[k]?
+								features.push(d)
+								result[k].total = result[k].lower + result[k].middle + result[k].upper
 
-				lCnt = 0
-				mCnt = 0
-				uCnt = 0
-				lSum = 0
-				mSum = 0
-				uSum = 0
-				for k,v of result
-					lCnt += v.lower
-					mCnt += v.middle
-					uCnt += v.upper
-					lSum += v.lAmount
-					mSum += v.mAmount
-					uSum += v.uAmount
-				console.log "Total sums LMU = #{lCnt},#{mCnt},#{uCnt}  #{lSum},#{mSum},#{uSum} #{lSum/lCnt},#{mSum/mCnt},#{uSum/uCnt}"
+						lCnt = 0
+						mCnt = 0
+						uCnt = 0
+						lSum = 0
+						mSum = 0
+						uSum = 0
+						for k,v of result
+							lCnt += v.lower
+							mCnt += v.middle
+							uCnt += v.upper
+							lSum += v.lAmount
+							mSum += v.mAmount
+							uSum += v.uAmount
+						console.log "Total sums LMU = #{lCnt},#{mCnt},#{uCnt}  #{lSum},#{mSum},#{uSum} #{lSum/lCnt},#{mSum/mCnt},#{uSum/uCnt}"
 
-				lowscale = d3.scale.linear().domain([0,1]).range(['rgba(255,0,0,0)','rgba(255,0,0,1)'])
-				middlescale = d3.scale.linear().domain([0,1]).range(['rgba(0,255,0,0)','rgba(0,255,0,1)'])
-				upperscale = d3.scale.linear().domain([0,1]).range(['rgba(0,0,255,0)','rgba(0,0,255,1)'])
-				#TODO 22-01905 -- is combined with xxx b/c of population displacement
-				d3.selectAll(".lower")
-					.data(features, (d) -> "#{d.properties.State}-#{d.properties.PUMA5}-#{d.properties.PERIMETER}")
-					.transition()
-					.delay(1000)
-					.attr('fill',"url(#lowerpattern)")
-					.attr('opacity', (d) =>
-						k = "#{d.properties.State}-#{d.properties.PUMA5}"
-						val = result[k].lower / result[k].total
-						#return lowscale(val)
-					)
-				d3.selectAll(".middle")
-					.data(features, (d) -> "#{d.properties.State}-#{d.properties.PUMA5}-#{d.properties.PERIMETER}")
-					.transition()
-					.delay(1000)
-					.attr('fill',"url(#middlepattern)")
-					.attr('opacity', (d) =>
-						k = "#{d.properties.State}-#{d.properties.PUMA5}"
-						val = result[k].middle / result[k].total
-						#return middlescale(val)
-					)
-				d3.selectAll(".upper")
-					.data(features, (d) -> "#{d.properties.State}-#{d.properties.PUMA5}-#{d.properties.PERIMETER}")
-					.transition()
-					.delay(1000)
-					.attr('fill', 'blue')
-					.style('opacity', (d) =>
-						k = "#{d.properties.State}-#{d.properties.PUMA5}"
-						val = result[k].upper / result[k].total
-						#return upperscale(val)
-					)
-				$('#startupdialog').fadeOut()
-		)
+						lowscale = d3.scale.linear().domain([0,1]).range(['rgba(255,0,0,0)','rgba(255,0,0,1)'])
+						middlescale = d3.scale.linear().domain([0,1]).range(['rgba(0,255,0,0)','rgba(0,255,0,1)'])
+						upperscale = d3.scale.linear().domain([0,1]).range(['rgba(0,0,255,0)','rgba(0,0,255,1)'])
+						#TODO 22-01905 -- is combined with xxx b/c of population displacement
+						d3.selectAll(".lower")
+							.data(features, (d) -> "#{d.properties.State}-#{d.properties.PUMA5}-#{d.properties.PERIMETER}")
+							.transition()
+							.delay(1000)
+							.attr('fill',"url(#lowerpattern)")
+							.attr('opacity', (d) =>
+								k = "#{d.properties.State}-#{d.properties.PUMA5}"
+								val = result[k].lower / result[k].total
+								#return lowscale(val)
+							)
+						d3.selectAll(".middle")
+							.data(features, (d) -> "#{d.properties.State}-#{d.properties.PUMA5}-#{d.properties.PERIMETER}")
+							.transition()
+							.delay(1000)
+							.attr('fill',"url(#middlepattern)")
+							.attr('opacity', (d) =>
+								k = "#{d.properties.State}-#{d.properties.PUMA5}"
+								val = result[k].middle / result[k].total
+								#return middlescale(val)
+							)
+						d3.selectAll(".upper")
+							.data(features, (d) -> "#{d.properties.State}-#{d.properties.PUMA5}-#{d.properties.PERIMETER}")
+							.transition()
+							.delay(1000)
+							.attr('fill', 'blue')
+							.style('opacity', (d) =>
+								k = "#{d.properties.State}-#{d.properties.PUMA5}"
+								val = result[k].upper / result[k].total
+								#return upperscale(val)
+							)
+						$('#startupdialog').fadeOut()
+				)
+		paintMap()

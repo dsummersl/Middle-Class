@@ -23,42 +23,42 @@
 </head>
 
 <body>
-  {{> map}}
 	{{> popups}}
 </body>
 
-<template name="map">
+<template name="popups">
   <div class="container">
     <div class="row">
       <div class="span12">
 				<div id="map">
-					<button class="btn" id="optionsbutton">Options</button>
+					<button class="btn" id="optionsbutton" data-toggle="modal" href="#classesdialog">Options</button>
 				</div>
       </div>
     </div>
-  </div>
-  <div class="modal" id="startupdialog">
-    <div class="modal-header"><h3>Loading</h3></div>
-    <div class="modal-body"><p id="startuptext"></p></div>
-    <div class="modal-footer"></div>
-  </div>
-</template>
-
-<template name="popups">
-  <div class="modal" id="classesdialog">
-    <div class="modal-header"><h3>Classes</h3></div>
-		<div class="modal-body">
-				<p>Change the boundaries between lower-middle and middle-upper below:</p>
-				<dl class="dl-horizontal">
-						<dt>Lower/Middle: </dt>
-						<dd><input type="text" id="lowmarker" value="{{lowmarker}}"></dd>
-						<dt>Middle/Upper: </dt>
-						<dd><input type="text" id="middlemarker" value="{{middlemarker}}"></dd>
-				</dl>
-		</div>
-		<div class="modal-footer">
-				<a href="#" id="changebutton" class="btn btn-primary">Change</a>
-				<a href="#" id="cancelbutton" class="btn">Cancel</a>
+    <div class="row">
+      <div class="span12">
+				<div class="modal" id="startupdialog">
+					<div class="modal-header"><h3>Loading</h3></div>
+					<div class="modal-body"><p id="startuptext"></p></div>
+					<div class="modal-footer"></div>
+				</div>
+				<div class="modal hide fade in" id="classesdialog">
+					<div class="modal-header"><h3>Classes</h3></div>
+					<div class="modal-body">
+							<p>Change the boundaries between lower-middle and middle-upper below:</p>
+							<dl class="dl-horizontal">
+									<dt>Lower/Middle: </dt>
+									<dd><input type="text" id="lowmarker" value="{{lowmarker}}"></dd>
+									<dt>Middle/Upper: </dt>
+									<dd><input type="text" id="middlemarker" value="{{middlemarker}}"></dd>
+							</dl>
+					</div>
+					<div class="modal-footer">
+							<a href="#" id="changebutton" class="btn btn-primary">Change</a>
+							<a href="#" id="cancelbutton" class="btn">Cancel</a>
+					</div>
+				</div>
+			</div>
 		</div>
   </div>
 </template>
