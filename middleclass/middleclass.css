@@ -16,7 +16,11 @@
 }
 
 #optionsbutton {
-	position: absolute;
-	left: 10px;
-	top: 10px;
+  position: absolute;
+  left: 20px;
+  top: 40px;
+}
+
+#filterdesc {
+  horizontal-alignment: center;
 }

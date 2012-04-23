@@ -97,4 +97,4 @@ Meteor.methods
     if finalVal instanceof Meteor.Error
       throw finalVal
     return finalVal
-# vim: set et,sw=2:
+# vim: set et,sw=2,ts=2:

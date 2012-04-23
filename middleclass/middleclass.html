@@ -1,42 +1,56 @@
 <head>
-  <meta charset=utf-8>
+	<meta charset=utf-8>
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>The Middle Class</title>
-  <link rel="stylesheet" href="css/bootstrap.min.css" type="text/css" charset="utf-8">
-  <script src="lib/jquery.min.js" type="text/javascript" charset="utf-8"></script>
-  <script src="lib/bootstrap.min.js" type="text/javascript" charset="utf-8"></script>
-  <script src="lib/bootstrap-tooltip.js" type="text/javascript" charset="utf-8"></script>
-  <script src="lib/bootstrap-popover.js" type="text/javascript" charset="utf-8"></script>
-  <script src="lib/d3.v2.js" type="text/javascript" charset="utf-8"></script>
-  <script type="text/javascript">
-    var _gaq = _gaq || [];
-    _gaq.push(['_setAccount', 'UA-28954266-1']);
-    _gaq.push(['_setDomainName', 'pinedesk.biz']);
-    _gaq.push(['_trackPageview']);
+	<title>The Middle Class</title>
+	<link rel="stylesheet" href="css/bootstrap.min.css" type="text/css" charset="utf-8">
+	<script src="lib/jquery.min.js" type="text/javascript" charset="utf-8"></script>
+	<script src="lib/bootstrap.min.js" type="text/javascript" charset="utf-8"></script>
+	<script src="lib/bootstrap-tooltip.js" type="text/javascript" charset="utf-8"></script>
+	<script src="lib/bootstrap-popover.js" type="text/javascript" charset="utf-8"></script>
+	<script src="lib/d3.v2.js" type="text/javascript" charset="utf-8"></script>
+	<script type="text/javascript">
+		var _gaq = _gaq || [];
+		_gaq.push(['_setAccount', 'UA-28954266-1']);
+		_gaq.push(['_setDomainName', 'pinedesk.biz']);
+		_gaq.push(['_trackPageview']);
 
-    (function() {
-      var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
-      ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
-      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
-    })();
-  </script>
+		(function() {
+			var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+			ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+			var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+		})();
+	</script>
 </head>
 
 <body>
-	{{> popups}}
+	<div class="container">
+		{{> map}}
+		{{> description}}
+		{{> popups}}
+	</div>
 </body>
 
-<template name="popups">
-  <div class="container">
-    <div class="row">
-      <div class="span12">
+<template name="map">
+		<div class="row">
+			<div class="span12">
 				<div id="map">
 					<button class="btn" id="optionsbutton" data-toggle="modal" href="#classesdialog">Options</button>
 				</div>
-      </div>
-    </div>
-    <div class="row">
-      <div class="span12">
+			</div>
+		</div>
+</template>
+
+<template name="description">
+		<div class="row">
+			<div class="span12">
+				<div>{{filterdesc}}</div>
+			</div>
+		</div>
+</template>
+
+<template name="popups">
+		<div class="row">
+			<div class="span12">
 				<div class="modal" id="startupdialog">
 					<div class="modal-header"><h3>Loading</h3></div>
 					<div class="modal-body"><p id="startuptext"></p></div>
@@ -45,12 +59,10 @@
 				<div class="modal hide fade in" id="classesdialog">
 					<div class="modal-header"><h3>Classes</h3></div>
 					<div class="modal-body">
-							<p>Change the boundaries between lower-middle and middle-upper below:</p>
+						<p>{{question}}</p>
 							<dl class="dl-horizontal">
-									<dt>Lower/Middle: </dt>
-									<dd><input type="text" id="lowmarker" value="{{lowmarker}}"></dd>
-									<dt>Middle/Upper: </dt>
-									<dd><input type="text" id="middlemarker" value="{{middlemarker}}"></dd>
+								<dt>{{questiondesc}}:</dt>
+								<dd><input type="text" id="lowmarker" value="{{questiondefault}}"></dd>
 							</dl>
 					</div>
 					<div class="modal-footer">
@@ -60,5 +72,4 @@
 				</div>
 			</div>
 		</div>
-  </div>
 </template>
