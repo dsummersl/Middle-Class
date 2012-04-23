@@ -4,11 +4,9 @@
   fill: #aaa;
 }
 
-/*
-#mapgraphic {
+#map {
   border: 1px solid #000;
 }
-*/
 
 .icon: {
   fill: #fff;
@@ -22,5 +20,6 @@
 }
 
 #filterdesc {
-  horizontal-alignment: center;
+  text-align: center;
+  font-family: "Times New Roman";
 }

@@ -11,30 +11,23 @@ class VisibleOnMovementItem
     fn = => @checkFade()
     Meteor.setInterval(fn,@ms/2)
     # TODO make this automatically unregister itself to minimize the overhead.
-    $('body').mousemove (e) =>
-      @lastEvent = (new Date()).getTime()
-      #console.log "mouse move: #{@lastEvent} - should be #{new Date().getTime()}"
+    $('body').mousemove (e) => @lastEvent = (new Date()).getTime()
   isVisible: => $(@item).is(':visible')
   checkFade: =>
-    #console.log "checking: #{@lastEvent}"
     if @isVisible()
       # if there has been no movement in the last @ms then fade out:
       change = new Date().getTime() > @lastEvent + @ms
-      #console.log "v - #{@item} = fade out? #{change}"
       $(@item).fadeOut() if change
     else
       # if there has been any movement recently, then fade in.
       change = @lastEvent + 1000 > new Date().getTime()
-      #console.log "i - #{@item} = fade in? #{change}"
       $(@item).fadeIn() if change
 
 
 makeMap = (callback) ->
-  console.log "starting call to make map"
   d3.json "svg/5percent-combined.geojson", (json) ->
     Session.set('map',json)
     path = d3.geo.path()
-    console.log "maKe path"
     svg = d3.select('#map').append('svg')
     defs = svg.append('defs')
     p = defs.append('pattern')
@@ -102,16 +95,12 @@ paintMap = ->
   paintMapContext.on_invalidate paintMap
   paintMapContext.run ->
     $('#startupdialog').fadeIn()
-    $('#startuptext').text("Updating map...")
-    #console.log "starting run"
-    #console.log "low and middle now #{Session.get('lowmarker')} #{Session.get('middlemarker')}"
-    Meteor.call('getGroup', Session.get('lowmarker'), Session.get('middlemarker'), (err, result) ->
+    Session.set('status',"Updating map...")
+    Meteor.call('getGroup', Session.get('filters').lowmarker, Session.get('filters').middlemarker, (err, result) ->
       if err
         console.log "ERROR: #{err}"
       else
-        #console.log "group #s: #{(k for k,v of result).length}"
-        #console.log "g = #{k}" for k,v of result
-        $('#startuptext').text("Loading stats...")
+        Session.set('status',"Loading stats...")
         features = []
         for d in Session.get('map').features
           k = "#{d.properties.State}-#{d.properties.PUMA5}"

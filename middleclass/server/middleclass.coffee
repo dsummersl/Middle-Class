@@ -39,7 +39,7 @@ Grouped.count({}, (err,doc) -> console.log "grouped count: #{doc}")
 
 Meteor.methods
   getGroup: (lowmarker,middlemarker) ->
-    console.log "group search..."
+    console.log "group search #{lowmarker} and #{middlemarker}"
     # first see if there are any entries already
     results = promise()
     Grouped.find({ params: "#{lowmarker}-#{middlemarker}" }, (err,docs) =>
