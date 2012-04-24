@@ -46,7 +46,7 @@ colnames(data) <- c('State','PUMA','Sex','Age','School','Income','IncomeCount')
 data$Age <- factor(data$Age,labels=c(17,24,30,34,39,49,59,100))
 # change the levels so that they match the incomes that actually exist
 # TODO wrong wrong wrong...need to fix this for texas and for iowa
-#c("(0,2e+04]","(2e+04,4e+04]","(4e+04,6e+04]","(6e+04,8e+04]","(8e+04,1e+05]","(1e+05,1.2e+05]","(1.2e+05,1.4e+05]","(1.4e+05,1.6e+05]","(1.6e+05,1.8e+05]","(1.8e+05,2e+05]","(2e+05,Inf]")
-data$Income <- factor(data$Income,labels=c(seq(1,19)*5,100000))
+#"(0,5e+03]","(5e+03,1e+04]","(1e+04,1.5e+04]","(1.5e+04,2e+04]","(2e+04,2.5e+04]","(2.5e+04,3e+04]","(3e+04,3.5e+04]","(3.5e+04,4e+04]","(4e+04,4.5e+04]","(4.5e+04,5e+04]","(5e+04,5.5e+04]","(5.5e+04,6e+04]","(6e+04,6.5e+04]","(6.5e+04,7e+04]","(7e+04,7.5e+04]","(7.5e+04,8e+04]","(8e+04,8.5e+04]","(8.5e+04,9e+04]","(9e+04,9.5e+04]","(9.5e+04,1e+05]","(1e+05,Inf]"
+#data$Income <- factor(data$Income,labels=c(seq(1,19)*5,100000))
 
 write.csv(data,file="out.csv",row.names=FALSE)

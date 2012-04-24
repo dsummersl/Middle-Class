@@ -18,34 +18,75 @@ zeroFill = ( number, width ) ->
   return new Array( width + (/\./.test( number ) ? 2 : 1) ).join( '0' ) + number if width > 0
   return number
 
-task 'manualprocess', '', ->
-  conn = dbconnect()
+dbconnect = ->
+  mongoose = require('mongoose')
+  db = mongoose.connect('mongodb://localhost/middleclass')
+  #db = mongoose.connect(__meteor_bootstrap__.mongo_url)
+  # TODO add a new schema with the results - store the mapreduce results
+  EntrySchema = new mongoose.Schema()
+  EntrySchema.add
+    puma: { type: String, index: true }
+    state: { type: Number, index: true }
+    sex: Boolean
+    age: Number
+    school: Number
+    income: Number
+    incomecount: Number
+  Entry = mongoose.model('Entry', EntrySchema)
+  GroupedSchema = new mongoose.Schema()
+  GroupedSchema.add
+    params: { type: String, index: true }
+    puma: String
+    state: Number
+    lower: Number
+    middle: Number
+    upper: Number
+    lAmount: Number
+    mAmount: Number
+    uAmount: Number
+  Grouped = mongoose.model('Grouped', GroupedSchema)
+  return [db,Entry,Grouped]
+
+importCSV = (conn,file,callback) ->
   db = conn[0]
   Entry = conn[1]
   Grouped = conn[2]
-  csv = require('ya-csv')
-  reader = csv.createCsvFileReader('out.csv', {columnsFromHeader: true})
-  cnt = 0
-  reader.addListener 'data', (data)=>
-    console.log "saving #{cnt}: #{data.State}-#{data.PUMA}" if cnt % 1000 == 0
-    Entry.collection.remove({ state: parseInt(data.State) }) if cnt == 0
-    Grouped.collection.remove({ state: parseInt(data.State) }) if cnt == 0
-    entry = new Entry
-      puma: zeroFill(data.PUMA,6)
-      state: parseInt(data.State)
-      sex: (data.Sex == "1")
-      age: parseInt(data.Age)
-      school: parseInt(data.School)
-      income: parseInt(data.Income)
-      incomecount: parseInt(data.IncomeCount)
-    cnt++
-    entry.save (err) ->
-      console.log "Error saving..." if err
-      cnt--
-  reader.addListener 'end', () =>
-    console.log "DONE"
-    done(listIndex+1,done)
-    #db.disconnect()
+  incomelevels = { "(0,5e+03]": 5,"(5e+03,1e+04]": 10,"(1e+04,1.5e+04]": 15,"(1.5e+04,2e+04]": 20 ,"(2e+04,2.5e+04]": 25,"(2.5e+04,3e+04]": 30,"(3e+04,3.5e+04]":35 ,"(3.5e+04,4e+04]":40 ,"(4e+04,4.5e+04]":45,"(4.5e+04,5e+04]":50,"(5e+04,5.5e+04]":55,"(5.5e+04,6e+04]":60,"(6e+04,6.5e+04]":65,"(6.5e+04,7e+04]":70,"(7e+04,7.5e+04]":75,"(7.5e+04,8e+04]":80,"(8e+04,8.5e+04]":85,"(8.5e+04,9e+04]":90,"(9e+04,9.5e+04]":95,"(9.5e+04,1e+05]":95,"(1e+05,Inf]":999999999 }
+  console.log "r --no-save --args /Volumes/My\\ Book/data/#{file} < bin/groupState.r"
+  exec "rm out.csv ; r --no-save --args /Volumes/My\\ Book/data/#{file} < bin/groupState.r", (error,stdout,stderr) ->
+    console.log "Generated #{file}, importing into db..."
+    console.log stderr
+    csv = require('ya-csv')
+    reader = csv.createCsvFileReader('out.csv', {columnsFromHeader: true})
+    cnt = 0
+    processed = 0
+    alldone = false
+    reader.addListener 'data', (data)=>
+      console.log "saving #{processed}/#{cnt}: #{data.State}-#{data.PUMA}" if cnt % 1000 == 0
+      # TODO don't remove those that have been split up:
+      Entry.collection.remove({ state: parseInt(data.State) }) if cnt == 0
+      entry = new Entry
+        puma: zeroFill(data.PUMA,6)
+        state: parseInt(data.State)
+        sex: (data.Sex == "1")
+        age: parseInt(data.Age)
+        school: parseInt(data.School)
+        income: incomelevels[data.Income]
+        incomecount: parseInt(data.IncomeCount)
+      cnt++
+      entry.save (err) ->
+        console.log "Error saving..." if err
+        processed++
+        if processed == cnt and alldone
+          console.log "DONE #{processed}/#{cnt}"
+          callback()
+    reader.addListener 'end', () => alldone = true
+
+task 'manualprocess', '', (options) ->
+  conn = dbconnect()
+  importCSV(conn,options.param, ->
+    conn[0].disconnect()
+  )
 
 task 'processdata', 'move the census data into mongodb (data should be in /Volumes/My Book/data external drive)', (options) ->
   # Strangely I had a couple problems importing these files:
@@ -62,33 +103,10 @@ task 'processdata', 'move the census data into mongodb (data should be in /Volum
       console.log "i = #{listIndex}"
       return if listIndex >= list.length
       file = list[listIndex]
-      if /csv$/.test(file) && /pia.csv$/.test(file)
-        console.log "r --no-save --args /Volumes/My\\ Book/data/#{file} < bin/groupState.r"
-        exec "r --no-save --args /Volumes/My\\ Book/data/#{file} < bin/groupState.r", (error,stdout,stderr) ->
-          console.log "Generated #{file}, importing into db..."
-          csv = require('ya-csv')
-          reader = csv.createCsvFileReader('out.csv', {columnsFromHeader: true})
-          cnt = 0
-          reader.addListener 'data', (data)=>
-            console.log "saving #{cnt}: #{data.State}-#{data.PUMA}" if cnt % 1000 == 0
-            # TODO don't remove those that have been split up:
-            Entry.collection.remove({ state: parseInt(data.State) }) if cnt == 0
-            entry = new Entry
-              puma: zeroFill(data.PUMA,6)
-              state: parseInt(data.State)
-              sex: (data.Sex == "1")
-              age: parseInt(data.Age)
-              school: parseInt(data.School)
-              income: parseInt(data.Income)
-              incomecount: parseInt(data.IncomeCount)
-            cnt++
-            entry.save (err) ->
-              console.log "Error saving..." if err
-              cnt--
-          reader.addListener 'end', () =>
-            console.log "DONE"
-            done(listIndex+1,done)
-            #db.disconnect()
+      if /csv$/.test(file)
+        importCSV(file, ->
+          done(conn,listIndex+1,done)
+        )
       else
         done(listIndex+1,done)
     fn(0,fn)
