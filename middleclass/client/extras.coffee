@@ -9,7 +9,7 @@ class VisibleOnMovementItem
     @ms = ms
     @lastEvent = new Date().getTime()
     fn = => @checkFade()
-    Meteor.setInterval(fn,@ms/2)
+    Meteor.setInterval(fn,@ms/5)
     # TODO make this automatically unregister itself to minimize the overhead.
     $('body').mousemove (e) => @lastEvent = (new Date()).getTime()
   isVisible: => $(@item).is(':visible')
@@ -23,6 +23,12 @@ class VisibleOnMovementItem
       change = @lastEvent + 1000 > new Date().getTime()
       $(@item).fadeIn() if change
 
+ContextWatcher = (method) ->
+    contextrecaller = ->
+      ctx = new Meteor.deps.Context()
+      ctx.on_invalidate contextrecaller
+      ctx.run method
+    contextrecaller()
 
 makeMap = (callback) ->
   d3.json "svg/5percent-combined.geojson", (json) ->
@@ -96,7 +102,7 @@ paintMap = ->
   paintMapContext.run ->
     $('#startupdialog').fadeIn()
     Session.set('status',"Updating map...")
-    Meteor.call('getGroup', Session.get('filters').lowmarker, Session.get('filters').middlemarker, (err, result) ->
+    Meteor.call('getGroup', Session.get('lowmarker'), Session.get('middlemarker'), (err, result) ->
       if err
         console.log "ERROR: #{err}"
       else
