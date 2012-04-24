@@ -38,11 +38,17 @@ Entry.count({}, (err,doc) -> console.log "entry count: #{doc}")
 Grouped.count({}, (err,doc) -> console.log "grouped count: #{doc}")
 
 Meteor.methods
-  getGroup: (lowmarker,middlemarker) ->
-    console.log "group search #{lowmarker} and #{middlemarker}"
+  getGroup: (lowmarker,middlemarker,age) ->
+    console.log "group search #{lowmarker} and #{middlemarker}, age #{age}"
     # first see if there are any entries already
+    cnd = {}
+    if age?
+      agebucket = 0
+      agebucket = a for a in [17,24,30,34,39,49,59,100] when a > age and agebucket == 0
+      console.log "age falls into bucket #{agebucket}"
+      cnd = { age: agebucket }
     results = promise()
-    Grouped.find({ params: "#{lowmarker}-#{middlemarker}" }, (err,docs) =>
+    Grouped.find({ params: "#{lowmarker}-#{middlemarker}-#{agebucket}" }, (err,docs) =>
       if err
         results.set(new Meteor.Error(500, err))
         return
@@ -81,7 +87,7 @@ Meteor.methods
         results.set(done)
       Entry.collection.group(
         {state: true, puma:true},     # keys
-        {},                           # condition
+        cnd,                          # condition
         {
           lower: 0, middle: 0, upper: 0,
           lowmarker: lowmarker, middlemarker: middlemarker,

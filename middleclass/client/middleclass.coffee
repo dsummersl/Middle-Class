@@ -8,14 +8,20 @@ questions = [ {
     questiondesc: "?"
     questiondefault: 65
     questionhandler: (v) -> Session.set('middlemarker',v)
+  },{
+    question: "How old are you?"
+    questiondesc: "?"
+    questiondefault: 35
+    questionhandler: (v) -> Session.set('age',v)
   }
 ]
 
 Session.set('questionNumber', 0)
 Session.set('map', null)
 Session.set('status', "Loading map...")
-Session.set('lowmarker',25)
-Session.set('middlemarker',65)
+Session.set('lowmarker',questions[0].questiondefault)
+Session.set('middlemarker',questions[1].questiondefault)
+Session.set('age',null)
 
 Meteor.startup ->
   # TODO I can't use templates and the modal stuff b/c the template completely rerenders my template for the popup thereby
@@ -23,7 +29,7 @@ Meteor.startup ->
   $('#classesdialog').fadeOut()
   $('#optionsbutton').click ->
     $('#question').text(questions[Session.get('questionNumber')].question)
-    $('#questiondesc').text(questions[Session.get('questionNumber')].questiondesc)
+    #$('#questiondesc').text(questions[Session.get('questionNumber')].questiondesc)
     $('#filterpopupval').attr('value',questions[Session.get('questionNumber')].questiondefault)
     $('#classesdialog').fadeIn()
   $('#changebutton').click ->
@@ -32,7 +38,11 @@ Meteor.startup ->
     Session.set('questionNumber',Session.get('questionNumber')+1)
     console.log "q = #{Session.get('questionNumber')}"
   ContextWatcher -> $('#startupdialogmessage').text(Session.get('status'))
-  ContextWatcher -> $('#filterdesc').text("middle class is $#{Session.get('lowmarker')}k-$#{Session.get('middlemarker')}k")
+  ContextWatcher ->
+    if Session.get('age')
+      $('#filterdesc').text("The middle class as $#{Session.get('lowmarker')}k-$#{Session.get('middlemarker')}k, age #{Session.get('age')}")
+    else
+      $('#filterdesc').text("The middle class as $#{Session.get('lowmarker')}k-$#{Session.get('middlemarker')}k")
   ContextWatcher -> if Session.get('questionNumber') >= questions.length then $('#optionsbutton').attr('disabled','disabled') else $('#optionsbutton').removeAttr('disabled')
   ContextWatcher ->
     #printStackTrace() if printStackTrace?

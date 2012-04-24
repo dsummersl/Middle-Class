@@ -102,7 +102,7 @@ paintMap = ->
   paintMapContext.run ->
     $('#startupdialog').fadeIn()
     Session.set('status',"Updating map...")
-    Meteor.call('getGroup', Session.get('lowmarker'), Session.get('middlemarker'), (err, result) ->
+    Meteor.call('getGroup', Session.get('lowmarker'), Session.get('middlemarker'), Session.get('age'), (err, result) ->
       if err
         console.log "ERROR: #{err}"
       else
