@@ -47,13 +47,37 @@ dbconnect = ->
   Grouped = mongoose.model('Grouped', GroupedSchema)
   return [db,Entry,Grouped]
 
+task 'cookCSV', 'take the raw CSV and turn it into cooked down CSV suitable for mongodb imports with manualprocess', (options) ->
+  breakout = (v,markers) ->
+    bucket = 0
+    bucket = a for a in markers when a > v and bucket == 0
+    return bucket
+  ageMarkers = [17,24,30,34,39,49,59,150]
+  moneyMarkers = (x*5000 for x in [1..20])
+  moneyMarkers.push(100000000) # infinity
+
+  csv = require('ya-csv')
+  reader = csv.createCsvFileReader( options.param, {columnsFromHeader: true})
+  cooked = {}
+  cnt = 0
+  console.log "State,PUMA,Sex,Age,School,Income,IncomeCount"
+  reader.addListener 'data', (d) ->
+    key = "#{d.ST},#{d.PUMA},#{d.SEX},#{breakout(d.AGEP,ageMarkers)},#{d.SCHL},#{breakout(d.PINCP,moneyMarkers)}"
+    cooked[key] = 0 if not cooked[key]
+    cooked[key] += 1
+    cnt++
+    console.error "read: #{cnt}" if cnt % 100000 == 0
+  reader.addListener 'end', () ->
+    for k,v of cooked
+      console.log "#{k},#{v}"
+
 importCSV = (conn,file,callback) ->
   db = conn[0]
   Entry = conn[1]
   Grouped = conn[2]
-  incomelevels = { "(0,5e+03]": 5,"(5e+03,1e+04]": 10,"(1e+04,1.5e+04]": 15,"(1.5e+04,2e+04]": 20 ,"(2e+04,2.5e+04]": 25,"(2.5e+04,3e+04]": 30,"(3e+04,3.5e+04]":35 ,"(3.5e+04,4e+04]":40 ,"(4e+04,4.5e+04]":45,"(4.5e+04,5e+04]":50,"(5e+04,5.5e+04]":55,"(5.5e+04,6e+04]":60,"(6e+04,6.5e+04]":65,"(6.5e+04,7e+04]":70,"(7e+04,7.5e+04]":75,"(7.5e+04,8e+04]":80,"(8e+04,8.5e+04]":85,"(8.5e+04,9e+04]":90,"(9e+04,9.5e+04]":95,"(9.5e+04,1e+05]":95,"(1e+05,Inf]":999999999 }
-  console.log "r --no-save --args /Volumes/My\\ Book/data/#{file} < bin/groupState.r"
-  exec "rm out.csv ; r --no-save --args /Volumes/My\\ Book/data/#{file} < bin/groupState.r", (error,stdout,stderr) ->
+  cmd = "rm out.csv ; time cake -p '#{file}' cookCSV > out.csv"
+  console.log "invoking command: '#{cmd}'"
+  exec cmd, (error,stdout,stderr) ->
     console.log "Generated #{file}, importing into db..."
     console.log stderr
     csv = require('ya-csv')
@@ -62,7 +86,7 @@ importCSV = (conn,file,callback) ->
     processed = 0
     alldone = false
     reader.addListener 'data', (data)=>
-      console.log "saving #{processed}/#{cnt}: #{data.State}-#{data.PUMA}" if cnt % 1000 == 0
+      console.log "saving #{processed}/#{cnt}" if cnt % 1000 == 0
       # TODO don't remove those that have been split up:
       Entry.collection.remove({ state: parseInt(data.State) }) if cnt == 0
       entry = new Entry
@@ -71,7 +95,7 @@ importCSV = (conn,file,callback) ->
         sex: (data.Sex == "1")
         age: parseInt(data.Age)
         school: parseInt(data.School)
-        income: incomelevels[data.Income]
+        income: data.Income
         incomecount: parseInt(data.IncomeCount)
       cnt++
       entry.save (err) ->
@@ -98,14 +122,16 @@ task 'processdata', 'move the census data into mongodb (data should be in /Volum
   conn = dbconnect()
   db = conn[0]
   Entry = conn[1]
-  fs.readdir '/Volumes/My Book/data/', (err,list) =>
+  dir = '/Volumes/My Book/data/'
+  fs.readdir dir, (err,list) =>
     fn = (listIndex,done) =>
-      console.log "i = #{listIndex}"
+      # TODO if its the last thing in the list, then make a note to disconnect from the db when you're done.
       return if listIndex >= list.length
       file = list[listIndex]
+      console.log "i = #{listIndex} #{file}"
       if /csv$/.test(file)
-        importCSV(file, ->
-          done(conn,listIndex+1,done)
+        importCSV(conn,"#{dir}#{file}", ->
+          done(listIndex+1,done)
         )
       else
         done(listIndex+1,done)
