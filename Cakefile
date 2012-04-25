@@ -71,7 +71,7 @@ task 'buildGroups', 'Once the dbs are built, use this command to build extra cac
     conn = common.dbconnect()
     for l in common.moneyMarkers
       for m in common.moneyMarkers when m > l
-        result = common.getGroup(conn,l,m,null)
+        result = common.getGroup(conn,l/1000,m/1000,null)
         lCnt = 0
         mCnt = 0
         uCnt = 0
