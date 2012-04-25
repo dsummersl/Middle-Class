@@ -66,6 +66,14 @@ task 'manualprocess', 'given a csv file, manually convert it to CSV and import i
     conn.db.disconnect()
   )
 
+# mongodump ---host 127.0.0.1:3002 -d meteor
+# tar zcvf dump.tgz dump
+# mv dump.tgz lib
+# rm -rf dump
+#
+# tar zxvf lib/dump.tgz
+# mongorestore --host localhost:3002 dump
+
 task 'buildGroups', 'Once the dbs are built, use this command to build extra caches', ->
   promise.start ->
     conn = common.dbconnect()
