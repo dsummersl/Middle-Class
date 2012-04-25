@@ -94,6 +94,16 @@ makeMap = (callback) ->
       .attr('id', (d)-> "upper-#{d.properties.State}-#{d.properties.PUMA5}-#{d.properties.PERIMETER}")
       .attr('class','part upper')
       .attr('d',path)
+      ### TODO support a mouseover graphic
+      .on('mouseover', (d) ->
+        $('#hoverdetail').text("State: #{d.properties.State}")
+        console.log "doing a mouse over for #upper-#{d.properties.State}-#{d.properties.PUMA5}-#{d.properties.PERIMETER}"
+      )
+      .on('mouseout', (d) ->
+        $('#hoverdetail').text("US")
+        console.log "doing a mouse over for #upper-#{d.properties.State}-#{d.properties.PUMA5}-#{d.properties.PERIMETER}"
+      )
+      ###
     callback()
 
 paintMap = ->

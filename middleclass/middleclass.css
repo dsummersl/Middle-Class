@@ -21,7 +21,17 @@
   top: 40px;
 }
 
+#hoverdetail {
+  position: absolute;
+  left: 20px;
+  top: 80px;
+}
+
 #filterdesc {
   text-align: center;
   font-family: "Times New Roman";
+}
+
+.part:hover {
+  border: 1px solid #f00;
 }
