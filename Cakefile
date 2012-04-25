@@ -1,80 +1,16 @@
 fs = require 'fs'
 exec = require('child_process').exec
 spawn = require('child_process').spawn
+promise = require('fibers-promise')
+#mongoose = require('mongoose')
+common = require('./middleclass/server/common')
 
 execHandler = (error,stdout,stderr) ->
   console.log stdout
   console.log stderr
   #console.log error if error != null
 
-task 'copyDependencies', 'For whatever reason spine sucks at using NPM modules - we use package.json for dependencies, but app/lib/ for the actual libs. Use this command to keep those in sync', ->
-  exec 'npm install .', execHandler
-  exec 'cp node_modules/d3/d3.v2.js app/lib', execHandler
-
-option '-p','--param [EXTRA]', 'Extra Param - see task'
-
-zeroFill = ( number, width ) ->
-  width -= number.toString().length
-  return new Array( width + (/\./.test( number ) ? 2 : 1) ).join( '0' ) + number if width > 0
-  return number
-
-dbconnect = ->
-  mongoose = require('mongoose')
-  db = mongoose.connect('mongodb://localhost/middleclass')
-  #db = mongoose.connect(__meteor_bootstrap__.mongo_url)
-  # TODO add a new schema with the results - store the mapreduce results
-  EntrySchema = new mongoose.Schema()
-  EntrySchema.add
-    puma: { type: String, index: true }
-    state: { type: Number, index: true }
-    sex: Boolean
-    age: Number
-    school: Number
-    income: Number
-    incomecount: Number
-  Entry = mongoose.model('Entry', EntrySchema)
-  GroupedSchema = new mongoose.Schema()
-  GroupedSchema.add
-    params: { type: String, index: true }
-    puma: String
-    state: Number
-    lower: Number
-    middle: Number
-    upper: Number
-    lAmount: Number
-    mAmount: Number
-    uAmount: Number
-  Grouped = mongoose.model('Grouped', GroupedSchema)
-  return [db,Entry,Grouped]
-
-task 'cookCSV', 'take the raw CSV and turn it into cooked down CSV suitable for mongodb imports with manualprocess', (options) ->
-  breakout = (v,markers) ->
-    bucket = 0
-    bucket = a for a in markers when a > v and bucket == 0
-    return bucket
-  ageMarkers = [17,24,30,34,39,49,59,150]
-  moneyMarkers = (x*5000 for x in [1..20])
-  moneyMarkers.push(100000000) # infinity
-
-  csv = require('ya-csv')
-  reader = csv.createCsvFileReader( options.param, {columnsFromHeader: true})
-  cooked = {}
-  cnt = 0
-  console.log "State,PUMA,Sex,Age,School,Income,IncomeCount"
-  reader.addListener 'data', (d) ->
-    key = "#{d.ST},#{d.PUMA},#{d.SEX},#{breakout(d.AGEP,ageMarkers)},#{d.SCHL},#{breakout(d.PINCP,moneyMarkers)}"
-    cooked[key] = 0 if not cooked[key]
-    cooked[key] += 1
-    cnt++
-    console.error "read: #{cnt}" if cnt % 100000 == 0
-  reader.addListener 'end', () ->
-    for k,v of cooked
-      console.log "#{k},#{v}"
-
 importCSV = (conn,file,callback) ->
-  db = conn[0]
-  Entry = conn[1]
-  Grouped = conn[2]
   cmd = "rm out.csv ; time cake -p '#{file}' cookCSV > out.csv"
   console.log "invoking command: '#{cmd}'"
   exec cmd, (error,stdout,stderr) ->
@@ -88,29 +24,69 @@ importCSV = (conn,file,callback) ->
     reader.addListener 'data', (data)=>
       console.log "saving #{processed}/#{cnt}" if cnt % 1000 == 0
       # TODO don't remove those that have been split up:
-      Entry.collection.remove({ state: parseInt(data.State) }) if cnt == 0
-      entry = new Entry
-        puma: zeroFill(data.PUMA,6)
-        state: parseInt(data.State)
+      conn.Entry.collection.remove({ state: parseInt(data.State) }) if cnt == 0
+      entry = new conn.Entry
+        puma: data.PUMA
+        state: data.State
         sex: (data.Sex == "1")
-        age: parseInt(data.Age)
-        school: parseInt(data.School)
+        age: data.Age
+        school: data.School
         income: data.Income
         incomecount: parseInt(data.IncomeCount)
       cnt++
       entry.save (err) ->
-        console.log "Error saving..." if err
+        console.log "Error saving: #{JSON.stringify(data)}" if err
         processed++
         if processed == cnt and alldone
           console.log "DONE #{processed}/#{cnt}"
           callback()
     reader.addListener 'end', () => alldone = true
 
-task 'manualprocess', '', (options) ->
-  conn = dbconnect()
+option '-p','--param [EXTRA]', 'Extra Param - see task'
+
+task 'cookCSV', 'take the raw CSV and turn it into cooked down CSV suitable for mongodb imports with manualprocess', (options) ->
+  csv = require('ya-csv')
+  reader = csv.createCsvFileReader( options.param, {columnsFromHeader: true})
+  cooked = {}
+  cnt = 0
+  console.log "State,PUMA,Sex,Age,School,Income,IncomeCount"
+  reader.addListener 'data', (d) ->
+    key = "#{d.ST},#{d.PUMA},#{d.SEX},#{common.breakout(d.AGEP,common.ageMarkers)},#{d.SCHL},#{common.breakout(d.PINCP,common.moneyMarkers)}"
+    cooked[key] = 0 if not cooked[key]
+    cooked[key] += 1
+    cnt++
+    console.error "read: #{cnt}" if cnt % 100000 == 0
+  reader.addListener 'end', () ->
+    for k,v of cooked
+      console.log "#{k},#{v}"
+
+task 'manualprocess', 'given a csv file, manually convert it to CSV and import it to mongo.', (options) ->
+  conn = common.dbconnect()
   importCSV(conn,options.param, ->
-    conn[0].disconnect()
+    conn.db.disconnect()
   )
+
+task 'buildGroups', 'Once the dbs are built, use this command to build extra caches', ->
+  promise.start ->
+    conn = common.dbconnect()
+    for l in common.moneyMarkers
+      for m in common.moneyMarkers when m > l
+        result = common.getGroup(conn,l,m,null)
+        lCnt = 0
+        mCnt = 0
+        uCnt = 0
+        lSum = 0
+        mSum = 0
+        uSum = 0
+        for k,v of result
+          lCnt += v.lower
+          mCnt += v.middle
+          uCnt += v.upper
+          lSum += v.lAmount
+          mSum += v.mAmount
+          uSum += v.uAmount
+        console.log "#{l}-#{m}: #{lCnt},#{mCnt},#{uCnt}  #{lSum},#{mSum},#{uSum} #{lSum/lCnt},#{mSum/mCnt},#{uSum/uCnt}"
+    conn.db.disconnect()
 
 task 'processdata', 'move the census data into mongodb (data should be in /Volumes/My Book/data external drive)', (options) ->
   # Strangely I had a couple problems importing these files:
@@ -119,9 +95,7 @@ task 'processdata', 'move the census data into mongodb (data should be in /Volum
   #    wc ss10ptx.csv
   #    split -l 587063 ss10ptx.csv ss10ptxsplit.csv
   #    manually put the first line onto the second split file.
-  conn = dbconnect()
-  db = conn[0]
-  Entry = conn[1]
+  conn = common.dbconnect()
   dir = '/Volumes/My Book/data/'
   fs.readdir dir, (err,list) =>
     fn = (listIndex,done) =>
@@ -137,7 +111,7 @@ task 'processdata', 'move the census data into mongodb (data should be in /Volum
         done(listIndex+1,done)
     fn(0,fn)
 
-task 'mapcommands', 'build commands to build map', (options) ->
+task 'mapcommands', 'Build the commands to build map.', (options) ->
   # TODO states to remove: 72 (puerto rico)?
   if options.type not in ['1percent','5percent']
     console.log "You need to specify a type: 1percent or 5percent"
@@ -174,76 +148,3 @@ task 'mapcommands', 'build commands to build map', (options) ->
     console.log "ogr2ogr -f 'GeoJSON' -simplify 0.02 #{dir}-combined.geojson #{dir}-combined.shp"
     console.log "rm #{dir}-combined.shp"
     console.log "mv #{dir}-combined.geojson public/svg"
-
-###
-task 'data1', 'Build some data with d3', ->
-  d3 = require('./app/lib/d3.min')
-  console.log "d3 version = "+ d3.version
-
-task 'data2', 'Build some data with d3', ->
-  hem = spawn 'hem', ['server']
-  phantom = require('phantom')
-  phantom.create (ph) ->
-    ph.createPage (page) ->
-      page.open 'http://localhost:9294/sandbox.html', (status) ->
-        page.evaluate (-> window), (window) ->
-          require = window.require
-          require('lib/d3.v2')
-          console.log("d3 version = "+ d3.version)
-          ph.exit()
-          hem.kill()
-
-task 'testold', 'Build some data with d3', ->
-  jsdom = require('jsdom')
-  jsdom.defaultDocumentFeatures = {
-    FetchExternalResources   : ['script'],
-    ProcessExternalResources : true,
-    MutationEvents           : true,
-    QuerySelector            : true
-  }
-  jsdom.env({
-    html: 'test/public/index.html'
-    scripts: [ fs.readFileSync('node_modules/jqueryify/index.js') ]
-    done: (errors,window) ->
-      console.log "looking..."
-      #console.log "Suites: "+ window.$('.runner .description').text()
-      console.log "Suites: "+ window.$('*').text()
-  })
-###
-
-task 'd3test', '', ->
-  require 'd3/index.js'
-  puma = JSON.parse(fs.readFileSync("public/svg/5percent-combined.geojson"))
-  spuma = JSON.parse(fs.readFileSync("public/svg/1percent-combined.geojson"))
-
-  console.log "puma = #{(f.properties.PUMA5 for f in puma.features).length}"
-  console.log "spuma = #{(f.properties.PUMA1 for f in spuma.features).length}"
-
-  try
-    console.log "a = #{d3.select('svg').length}"
-    path = d3.geo.path()
-    svg = d3.select('#adiv').append('svg')
-    pumaparts = svg.append('g')
-      .attr('id', 'pumaparts')
-      .attr('class','puma')
-    pumaparts.select('#pumaparts').selectAll('path')
-      .data(puma.features)
-      .enter()
-      .append('path')
-      .attr('d',path)
-      .call( (d) ->
-        console.log "puma does it intersect?"
-      )
-    spumaparts = svg.append('g')
-      .attr('id', 'spumaparts')
-      .attr('class','spuma')
-    spumaparts.select('#spumaparts').selectAll('path')
-      .data(spuma.features)
-      .enter()
-      .append('path')
-      .attr('d',path)
-      .call( (d) ->
-        console.log "spuma does it intersect?"
-      )
-  catch e
-    console.log "error #{e}"

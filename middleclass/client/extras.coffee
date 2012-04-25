@@ -114,21 +114,6 @@ paintMap = ->
             features.push(d)
             result[k].total = result[k].lower + result[k].middle + result[k].upper
 
-        lCnt = 0
-        mCnt = 0
-        uCnt = 0
-        lSum = 0
-        mSum = 0
-        uSum = 0
-        for k,v of result
-          lCnt += v.lower
-          mCnt += v.middle
-          uCnt += v.upper
-          lSum += v.lAmount
-          mSum += v.mAmount
-          uSum += v.uAmount
-        console.log "Total sums LMU = #{lCnt},#{mCnt},#{uCnt}  #{lSum},#{mSum},#{uSum} #{lSum/lCnt},#{mSum/mCnt},#{uSum/uCnt}"
-
         lowscale = d3.scale.linear().domain([0,1]).range(['rgba(255,0,0,0)','rgba(255,0,0,1)'])
         middlescale = d3.scale.linear().domain([0,1]).range(['rgba(0,255,0,0)','rgba(0,255,0,1)'])
         upperscale = d3.scale.linear().domain([0,1]).range(['rgba(0,0,255,0)','rgba(0,0,255,1)'])
