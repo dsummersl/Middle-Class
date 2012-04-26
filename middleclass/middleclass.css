@@ -4,11 +4,10 @@
   fill: #aaa;
 }
 
-/*
 #map {
-  border: 1px solid #000;
+  /*border: 1px solid #000;*/
+  height: 500px;
 }
-*/
 
 .icon: {
   fill: #fff;
@@ -29,7 +28,7 @@
 
 #filterdesc {
   text-align: center;
-  font-family: "Times New Roman";
+  font-family: "Century Gothic";
 }
 
 .part:hover {

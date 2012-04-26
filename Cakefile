@@ -1,7 +1,7 @@
 fs = require 'fs'
 exec = require('child_process').exec
 spawn = require('child_process').spawn
-#mongoose = require('mongoose')
+mongoose = require('mongoose')
 common = require('./middleclass/server/common')
 
 execHandler = (error,stdout,stderr) ->

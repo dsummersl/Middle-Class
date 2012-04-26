@@ -1,6 +1,5 @@
 
 dbconnect = ->
-  mongoose = require('mongoose')
   #db = mongoose.connect('mongodb://localhost/middleclass')
   db = mongoose.connect(__meteor_bootstrap__.mongo_url)
   EntrySchema = new mongoose.Schema()
