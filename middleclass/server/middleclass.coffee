@@ -1,7 +1,5 @@
 require = __meteor_bootstrap__.require if __meteor_bootstrap__?
-
 exec = require('child_process').exec
-promise = require('fibers-promise')
 
 console.log "db: "+ __meteor_bootstrap__.mongo_url
 

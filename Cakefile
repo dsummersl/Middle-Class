@@ -1,7 +1,6 @@
 fs = require 'fs'
 exec = require('child_process').exec
 spawn = require('child_process').spawn
-promise = require('fibers-promise')
 #mongoose = require('mongoose')
 common = require('./middleclass/server/common')
 
@@ -75,7 +74,8 @@ task 'manualprocess', 'given a csv file, manually convert it to CSV and import i
 # mongorestore --host localhost:3002 dump
 
 task 'buildGroups', 'Once the dbs are built, use this command to build extra caches', ->
-  promise.start ->
+  require('fibers')
+  Future ->
     conn = common.dbconnect()
     for l in common.moneyMarkers
       for m in common.moneyMarkers when m > l

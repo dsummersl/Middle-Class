@@ -44,15 +44,9 @@ ageMarkers = [17,24,30,34,39,49,59,150]
 moneyMarkers = (x*5000 for x in [1..20])
 moneyMarkers.push(100000000) # infinity
 
-###
-hasGroup = (groupId) ->
-  results = promise()
-  Grouped.count { params: "#{lowmarker}-#{middlemarker}-#{age}" }, (err,doc) => results.set(not err and doc > 0)
-  return results.get()
-###
-
 getGroup = (conn,lowmarker,middlemarker,age=null) ->
-  promise = require('fibers-promise')
+  # https://github.com/laverdet/node-fibers
+  Future = require('fibers/future')
   lowmarker = breakout(lowmarker*1000,moneyMarkers)
   middlemarker = breakout(middlemarker*1000,moneyMarkers)
   age = breakout(age,ageMarkers) if age?
@@ -60,73 +54,54 @@ getGroup = (conn,lowmarker,middlemarker,age=null) ->
   # first see if there are any entries already
   cnd = {}
   cnd = { age: age } if age?
-  results = promise()
   groupedKey = "#{lowmarker}-#{middlemarker}-#{age}"
-  conn.Grouped.find({ params: groupedKey }, (err,docs) =>
-    if err
-      #results.set(new Meteor.Error(500, err))
-      results.set("err: "+ err)
-      return
-    console.log "groups found: #{docs.length}"
-    if docs.length > 0
-      done = {}
-      done["#{i.state}-#{i.puma}"] = i for i in docs
-      results.set(done)
-      return
-    grp = (doc,out) =>
-      out.lower += doc.incomecount if doc.income <= out.lowmarker
-      out.middle += doc.incomecount if doc.income <= out.middlemarker and doc.income > out.lowmarker
-      out.upper += doc.incomecount if doc.income > out.middlemarker
-      out.lAmount += doc.income*doc.incomecount if doc.income <= out.lowmarker
-      out.mAmount += doc.income*doc.incomecount if doc.income <= out.middlemarker and doc.income > out.lowmarker
-      out.uAmount += doc.income*doc.incomecount if doc.income > out.middlemarker
-    done = (err,doc) =>
-      if err
-        #results.set(new Meteor.Error(500, err))
-        results.set("err: "+ err)
-        return
-      console.log "found from entries: #{doc.length}"
-      console.log "saving to groups as '#{groupedKey}'"
-      done = {}
-      done["#{i.state}-#{i.puma}"] = i for i in doc
-      cnt = 0
-      processed = 0
-      for d in doc
-        cnt++
-        g = new conn.Grouped
-          params: groupedKey
-          puma: d.puma
-          state: d.state
-          lower: d.lower
-          middle: d.middle
-          upper: d.upper
-          lAmount: d.lAmount
-          mAmount: d.mAmount
-          uAmount: d.uAmount
-        g.save (err) ->
-          processed++
-          console.log "Error saving..." if err
-          if processed == cnt
-            console.log "done"
-            results.set(done)
-    conn.Entry.collection.group(
-      {state: true, puma:true},     # keys
-      cnd,                          # condition
-      {
-        lower: 0, middle: 0, upper: 0,
-        lowmarker: lowmarker, middlemarker: middlemarker,
-        lAmount: 0, mAmount: 0, uAmount: 0
-      },
-      grp,                          # reduce
-      null,                         # finalize
-      null,                         # command
-      done                          # callback
-    )
-  )
-  finalVal = results.get()
-  #if finalVal instanceof Meteor.Error
-  #  throw finalVal
-  return finalVal
+  find = Future.wrap(conn.Grouped.find,1)
+  docs = find.call(conn.Grouped,{ params: groupedKey }).wait()
+  console.log "groups found: #{docs.length}"
+  if docs.length > 0
+    done = {}
+    done["#{i.state}-#{i.puma}"] = i for i in docs
+    return done
+  grp = (doc,out) =>
+    out.lower += doc.incomecount if doc.income <= out.lowmarker
+    out.middle += doc.incomecount if doc.income <= out.middlemarker and doc.income > out.lowmarker
+    out.upper += doc.incomecount if doc.income > out.middlemarker
+    out.lAmount += doc.income*doc.incomecount if doc.income <= out.lowmarker
+    out.mAmount += doc.income*doc.incomecount if doc.income <= out.middlemarker and doc.income > out.lowmarker
+    out.uAmount += doc.income*doc.incomecount if doc.income > out.middlemarker
+  group = Future.wrap(conn.Entry.collection.group,6)
+  doc = group.call(conn.Entry.collection,
+    {state: true, puma:true},     # keys
+    cnd,                          # condition
+    {
+      lower: 0, middle: 0, upper: 0,
+      lowmarker: lowmarker, middlemarker: middlemarker,
+      lAmount: 0, mAmount: 0, uAmount: 0
+    },
+    grp,                          # reduce
+    null,                         # finalize
+    null                          # command
+  ).wait()
+  console.log "found from entries: #{doc.length}"
+  console.log "saving to groups as '#{groupedKey}'"
+  done = {}
+  done["#{i.state}-#{i.puma}"] = i for i in doc
+  cnt = 0
+  for d in doc
+    cnt++
+    g = new conn.Grouped
+      params: groupedKey
+      puma: d.puma
+      state: d.state
+      lower: d.lower
+      middle: d.middle
+      upper: d.upper
+      lAmount: d.lAmount
+      mAmount: d.mAmount
+      uAmount: d.uAmount
+    save = Future.wrap(g.save,0)
+    save.call(g).wait()
+  return done
 
 module?.exports =
   dbconnect: dbconnect
