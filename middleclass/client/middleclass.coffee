@@ -40,9 +40,9 @@ Meteor.startup ->
   ContextWatcher -> $('#startupdialogmessage').text(Session.get('status'))
   ContextWatcher ->
     if Session.get('age')
-      $('#filterdesc').text("The middle class as $#{Session.get('lowmarker')}k-$#{Session.get('middlemarker')}k, age #{Session.get('age')}")
+      $('#filterdesc').text("When the middle class earns $#{Session.get('lowmarker')}k-$#{Session.get('middlemarker')}k, age #{Session.get('age')}")
     else
-      $('#filterdesc').text("The middle class as $#{Session.get('lowmarker')}k-$#{Session.get('middlemarker')}k")
+      $('#filterdesc').text("When the middle class earns $#{Session.get('lowmarker')}k-$#{Session.get('middlemarker')}k")
   ContextWatcher -> if Session.get('questionNumber') >= questions.length then $('#optionsbutton').attr('disabled','disabled') else $('#optionsbutton').removeAttr('disabled')
   ContextWatcher ->
     #printStackTrace() if printStackTrace?

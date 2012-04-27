@@ -1,5 +1,10 @@
 /* CSS declarations go here */
 
+body {
+  background-color: #333;
+  fill: #333;
+}
+
 .puma {
   fill: #aaa;
 }
@@ -7,6 +12,7 @@
 #map {
   /*border: 1px solid #000;*/
   height: 500px;
+  fill: #333;
 }
 
 .icon: {
@@ -29,6 +35,7 @@
 #filterdesc {
   text-align: center;
   font-family: "Century Gothic";
+  color: #ccc;
 }
 
 .part:hover {
