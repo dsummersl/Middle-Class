@@ -19,8 +19,8 @@ questions = [ {
 Session.set('questionNumber', 0)
 Session.set('map', null)
 Session.set('status', "Loading map...")
-Session.set('lowmarker',questions[0].questiondefault)
-Session.set('middlemarker',questions[1].questiondefault)
+Session.set('lowmarker',0)
+Session.set('middlemarker',250)
 Session.set('age',null)
 
 Meteor.startup ->

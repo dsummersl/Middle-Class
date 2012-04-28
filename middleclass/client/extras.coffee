@@ -51,13 +51,13 @@ makeMap = (callback) ->
     # height: two rows, no space between the rows:
     # height = 2 * 5 + 1 = 11
     for pb,i in percentBreakouts
-      r = pb*3
+      r = 1+pb*3
       patternArea = (d) ->
         d.attr('patternUnits', 'userSpaceOnUse')
         .attr('x',0)
         .attr('y',0)
-        .attr('width',4.5)
-        .attr('height',2.75)
+        .attr('width',2.25)
+        .attr('height',1.375)
         .attr('viewBox','0 0 18 11')
       p = defs.append('pattern')
         .attr('id', "lowerpattern-#{pb}")
@@ -66,12 +66,12 @@ makeMap = (callback) ->
         .attr('cx',3)
         .attr('cy',3)
         .attr('r', r)
-        .attr('fill', '#009')
+        .attr('fill', d3.rgb('white'))
       p.append('circle')
         .attr('cx',11.5)
         .attr('cy',8)
         .attr('r', r)
-        .attr('fill', '#009')
+        .attr('fill', d3.rgb('white'))
       p = defs.append('pattern')
         .attr('id', "middlepattern-#{pb}")
         .call(patternArea)
@@ -79,17 +79,17 @@ makeMap = (callback) ->
         .attr('cx',9)
         .attr('cy',3)
         .attr('r', r)
-        .attr('fill', 'green')
+        .attr('fill', d3.rgb('green').brighter())
       p.append('circle')
         .attr('cx',0)
         .attr('cy',8)
         .attr('r', r)
-        .attr('fill', 'green')
+        .attr('fill', d3.rgb('green').brighter())
       p.append('circle')
         .attr('cx',18)
         .attr('cy',8)
         .attr('r', r)
-        .attr('fill', 'green')
+        .attr('fill', d3.rgb('green').brighter())
       p = defs.append('pattern')
         .attr('id', "upperpattern-#{pb}")
         .call(patternArea)
@@ -97,12 +97,12 @@ makeMap = (callback) ->
         .attr('cx',15)
         .attr('cy',3)
         .attr('r', r)
-        .attr('fill', 'red')
+        .attr('fill', d3.rgb('red').brighter().brighter())
       p.append('circle')
         .attr('cx',6)
         .attr('cy',8)
         .attr('r', r)
-        .attr('fill', 'red')
+        .attr('fill', d3.rgb('red').brighter().brighter())
     parts = svg.selectAll('.part')
       .data(json.features, (d) -> "#{d.properties.State}-#{d.properties.PUMA5}-#{d.properties.PERIMETER}")
 
@@ -160,9 +160,9 @@ paintMap = ->
             #console.log "samples per area? #{result[k].total} / #{d.properties.AREA} = #{result[k].total / d.properties.AREA}"
 
         #TODO 22-01905 -- is combined with xxx b/c of population displacement
-        console.log "working with #{minSPA} and #{maxSPA}"
-        om = d3.scale.linear().domain([minSPA,maxSPA]).range([0,0.9])
-        densityopacitymap = (d) -> om(d) + 0.1
+        om = d3.scale.sqrt().domain([minSPA,maxSPA]).range([0,1])
+        densityopacitymap = (d) -> om(d) + 0.3
+        console.log "working with #{minSPA} and #{maxSPA}: #{densityopacitymap(minSPA)} and #{densityopacitymap(maxSPA)}"
         d = d3.selectAll(".lower")
           .data(features, (d) -> "#{d.properties.State}-#{d.properties.PUMA5}-#{d.properties.PERIMETER}")
         d.exit().remove()
@@ -171,7 +171,7 @@ paintMap = ->
             val = breakout(result[k].lower / result[k].total,percentBreakouts)
             "url(#lowerpattern-#{val})"
           )
-          .attr('opacity',densityopacitymap)
+          .attr('opacity', (d) -> densityopacitymap(d.properties.samplesPerArea) )
         d = d3.selectAll(".middle")
           .data(features, (d) -> "#{d.properties.State}-#{d.properties.PUMA5}-#{d.properties.PERIMETER}")
         d.exit().remove()
@@ -180,7 +180,7 @@ paintMap = ->
             val = breakout(result[k].middle / result[k].total,percentBreakouts)
             "url(#middlepattern-#{val})"
           )
-          .attr('opacity',densityopacitymap)
+          .attr('opacity', (d) -> densityopacitymap(d.properties.samplesPerArea) )
         d = d3.selectAll(".upper")
           .data(features, (d) -> "#{d.properties.State}-#{d.properties.PUMA5}-#{d.properties.PERIMETER}")
         d.exit().remove()
@@ -189,6 +189,6 @@ paintMap = ->
             val = breakout(result[k].upper / result[k].total,percentBreakouts)
             "url(#upperpattern-#{val})"
           )
-          .attr('opacity',densityopacitymap)
+          .attr('opacity', (d) -> densityopacitymap(d.properties.samplesPerArea) )
         $('#startupdialog').fadeOut()
     )
