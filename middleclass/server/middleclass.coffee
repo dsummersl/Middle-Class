@@ -6,7 +6,7 @@ console.log "db: "+ __meteor_bootstrap__.mongo_url
 conn = dbconnect()
 
 Meteor.methods
-  getGroup: (lowmarker,middlemarker,age=null) -> getGroup(conn,lowmarker,middlemarker,age)
+  getGroup: (lowmarker,middlemarker,age=null,school=null) -> getGroup(conn,lowmarker,middlemarker,age,school)
 
 Meteor.startup ->
   # check to see if there are any records...if not, then load my dump.

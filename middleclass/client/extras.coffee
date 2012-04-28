@@ -79,17 +79,17 @@ makeMap = (callback) ->
         .attr('cx',9)
         .attr('cy',3)
         .attr('r', r)
-        .attr('fill', d3.rgb('green').brighter())
+        .attr('fill', d3.rgb('blue').brighter())
       p.append('circle')
         .attr('cx',0)
         .attr('cy',8)
         .attr('r', r)
-        .attr('fill', d3.rgb('green').brighter())
+        .attr('fill', d3.rgb('blue').brighter())
       p.append('circle')
         .attr('cx',18)
         .attr('cy',8)
         .attr('r', r)
-        .attr('fill', d3.rgb('green').brighter())
+        .attr('fill', d3.rgb('blue').brighter())
       p = defs.append('pattern')
         .attr('id', "upperpattern-#{pb}")
         .call(patternArea)
@@ -97,12 +97,12 @@ makeMap = (callback) ->
         .attr('cx',15)
         .attr('cy',3)
         .attr('r', r)
-        .attr('fill', d3.rgb('red').brighter().brighter())
+        .attr('fill', d3.rgb('yellow').brighter().brighter())
       p.append('circle')
         .attr('cx',6)
         .attr('cy',8)
         .attr('r', r)
-        .attr('fill', d3.rgb('red').brighter().brighter())
+        .attr('fill', d3.rgb('yellow').brighter().brighter())
     parts = svg.selectAll('.part')
       .data(json.features, (d) -> "#{d.properties.State}-#{d.properties.PUMA5}-#{d.properties.PERIMETER}")
 
@@ -139,7 +139,7 @@ paintMap = ->
   paintMapContext.run ->
     $('#startupdialog').fadeIn()
     Session.set('status',"Updating map...")
-    Meteor.call('getGroup', Session.get('lowmarker'), Session.get('middlemarker'), Session.get('age'), (err, result) ->
+    Meteor.call('getGroup', Session.get('lowmarker'), Session.get('middlemarker'), Session.get('age'), Session.get('school'), (err, result) ->
       if err
         console.log "ERROR: #{err}"
       else
@@ -159,10 +159,9 @@ paintMap = ->
             maxSPA = d.properties.samplesPerArea if maxSPA == 0 or maxSPA < d.properties.samplesPerArea
             #console.log "samples per area? #{result[k].total} / #{d.properties.AREA} = #{result[k].total / d.properties.AREA}"
 
-        #TODO 22-01905 -- is combined with xxx b/c of population displacement
         om = d3.scale.sqrt().domain([minSPA,maxSPA]).range([0,1])
         densityopacitymap = (d) -> om(d) + 0.3
-        console.log "working with #{minSPA} and #{maxSPA}: #{densityopacitymap(minSPA)} and #{densityopacitymap(maxSPA)}"
+        #console.log "working with #{minSPA} and #{maxSPA}: #{densityopacitymap(minSPA)} and #{densityopacitymap(maxSPA)}"
         d = d3.selectAll(".lower")
           .data(features, (d) -> "#{d.properties.State}-#{d.properties.PUMA5}-#{d.properties.PERIMETER}")
         d.exit().remove()

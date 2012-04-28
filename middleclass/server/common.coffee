@@ -1,14 +1,15 @@
 
-dbconnect = ->
+dbconnect = (dburl=__meteor_bootstrap__?.mongo_url)->
   #db = mongoose.connect('mongodb://localhost/middleclass')
-  db = mongoose.connect(__meteor_bootstrap__.mongo_url)
+  mongoose = require('mongoose')
+  db = mongoose.connect(dburl)
   EntrySchema = new mongoose.Schema()
   EntrySchema.add
     puma: String
     state: Number
     sex: Boolean
     age: { type: Number, index: true }
-    school: Number
+    school: { type: Number, index: true }
     income: Number
     incomecount: Number
   Entry = mongoose.model('Entry', EntrySchema)
@@ -26,12 +27,6 @@ dbconnect = ->
   Grouped = mongoose.model('Grouped', GroupedSchema)
   return {db: db,Entry: Entry,Grouped: Grouped}
 
-# TODO delete - not used...
-zeroFill = ( number, width ) ->
-  width -= number.toString().length
-  return new Array( width + (/\./.test( number ) ? 2 : 1) ).join( '0' ) + number if width > 0
-  return number
-
 # Given an integer v and an array of integers, find the smallest integer in the
 # array that is larger than v.
 breakout = (v,markers) ->
@@ -40,20 +35,42 @@ breakout = (v,markers) ->
   return bucket
 
 ageMarkers = [17,24,30,34,39,49,59,150]
+schoolMarkers = [9, 11, 12, 13, 14, 16]
 moneyMarkers = (x*5000 for x in [1..20])
 moneyMarkers.push(100000000) # infinity
 
-getGroup = (conn,lowmarker,middlemarker,age=null) ->
+###
+# bb .N/A (less than 3 years old)
+           01 .No schooling completed
+           02 .Nursery school to grade 4
+           03 .Grade 5 or grade 6
+           04 .Grade 7 or grade 8
+           05 .Grade 9
+           06 .Grade 10
+           07 .Grade 11
+           08 .12th grade, no diploma
+           09 .High school graduate
+           10 .Some college, but less than 1 year
+           11 .One or more years of college, no degree
+           12 .Associate's degree
+           13 .Bachelor's degree
+           14 .Master's degree
+           15 .Professional school degree
+           16 .Doctorate degree
+###
+
+getGroup = (conn,lowmarker,middlemarker,age=null,school=null) ->
   # https://github.com/laverdet/node-fibers
   Future = require('fibers/future')
   lowmarker = breakout(lowmarker*1000,moneyMarkers)
   middlemarker = breakout(middlemarker*1000,moneyMarkers)
   age = breakout(age,ageMarkers) if age?
-  console.log "group search #{lowmarker} and #{middlemarker}, age #{age}"
+  console.log "group search #{lowmarker} and #{middlemarker}, age #{age}, school #{school}"
   # first see if there are any entries already
   cnd = {}
-  cnd = { age: age } if age?
-  groupedKey = "#{lowmarker}-#{middlemarker}-#{age}"
+  cnd = { age: parseInt(age) } if age?
+  cnd = { age: parseInt(age), school: parseInt(school) } if school?
+  groupedKey = "#{lowmarker}-#{middlemarker}-#{age}-#{school}"
   find = Future.wrap(conn.Grouped.find,1)
   docs = find.call(conn.Grouped,{ params: groupedKey }).wait()
   console.log "groups found: #{docs.length}"
@@ -61,6 +78,7 @@ getGroup = (conn,lowmarker,middlemarker,age=null) ->
     done = {}
     done["#{i.state}-#{i.puma}"] = i for i in docs
     return done
+  console.log "group conditions = #{JSON.stringify(cnd)}"
   grp = (doc,out) =>
     out.lower += doc.incomecount if doc.income <= out.lowmarker
     out.middle += doc.incomecount if doc.income <= out.middlemarker and doc.income > out.lowmarker

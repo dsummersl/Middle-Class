@@ -75,8 +75,9 @@ task 'manualprocess', 'given a csv file, manually convert it to CSV and import i
 
 task 'buildGroups', 'Once the dbs are built, use this command to build extra caches', ->
   require('fibers')
-  Future ->
-    conn = common.dbconnect()
+  Fiber( () ->
+    console.log "starting"
+    conn = common.dbconnect('mongodb://127.0.0.1:3002/meteor')
     for l in common.moneyMarkers
       for m in common.moneyMarkers when m > l
         result = common.getGroup(conn,l/1000,m/1000,null)
@@ -95,6 +96,7 @@ task 'buildGroups', 'Once the dbs are built, use this command to build extra cac
           uSum += v.uAmount
         console.log "#{l}-#{m}: #{lCnt},#{mCnt},#{uCnt}  #{lSum},#{mSum},#{uSum} #{lSum/lCnt},#{mSum/mCnt},#{uSum/uCnt}"
     conn.db.disconnect()
+  ).run()
 
 task 'processdata', 'move the census data into mongodb (data should be in /Volumes/My Book/data external drive)', (options) ->
   # Strangely I had a couple problems importing these files:

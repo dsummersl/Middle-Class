@@ -13,6 +13,12 @@ questions = [ {
     questiondesc: "?"
     questiondefault: 35
     questionhandler: (v) -> Session.set('age',v)
+  },{
+    question: "School?"
+    questiondesc: "?"
+    # TODO this needs to be a combobox
+    questiondefault: 9
+    questionhandler: (v) -> Session.set('school',v)
   }
 ]
 
@@ -22,10 +28,17 @@ Session.set('status', "Loading map...")
 Session.set('lowmarker',0)
 Session.set('middlemarker',250)
 Session.set('age',null)
+Session.set('school',null)
+
+schoolMaps =
+  9: "high school"
+  11: "some college"
+  12: "associate's degree"
+  13: "bachelor's degree"
+  14: "master's degree"
+  16: "doctorate with"
 
 Meteor.startup ->
-  # TODO I can't use templates and the modal stuff b/c the template completely rerenders my template for the popup thereby
-  # losing some of the already set classes applied to the modes.
   $('#classesdialog').fadeOut()
   $('#optionsbutton').click ->
     $('#question').text(questions[Session.get('questionNumber')].question)
@@ -36,9 +49,10 @@ Meteor.startup ->
     $('#classesdialog').fadeOut()
     questions[Session.get('questionNumber')].questionhandler($('#filterpopupval').val())
     Session.set('questionNumber',Session.get('questionNumber')+1)
-    console.log "q = #{Session.get('questionNumber')}"
   ContextWatcher -> $('#startupdialogmessage').text(Session.get('status'))
   ContextWatcher ->
+    #if Session.get('age') and Session.get('school')
+    #$('#filterdesc').text("When the middle class earns $#{Session.get('lowmarker')}k-$#{Session.get('middlemarker')}k, age #{Session.get('age')}")
     if Session.get('age')
       $('#filterdesc').text("When the middle class earns $#{Session.get('lowmarker')}k-$#{Session.get('middlemarker')}k, age #{Session.get('age')}")
     else
@@ -48,7 +62,8 @@ Meteor.startup ->
     #printStackTrace() if printStackTrace?
     step = Session.get('questionNumber')
     $('#optionsbutton').text("Start") if step == 0
-    $('#optionsbutton').text("Step #{step}") if step > 0
+    $('#optionsbutton').text("Next") if step > 0 && step < questions.length
+    $('#optionsbutton').text("Done") if step == questions.length
 
   makeMap ->
     new VisibleOnMovementItem('#optionsbutton',3000)
