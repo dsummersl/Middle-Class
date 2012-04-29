@@ -37,7 +37,7 @@ breakout = (v,markers) ->
   bucket = a for a in markers when a >= v and bucket == 0
   return bucket
 
-percentBreakouts = (a*0.1 for a in [1..9])
+percentBreakouts = (a*0.1 for a in [0..9])
 percentBreakouts.push(1)
 
 makeMap = (callback) ->
@@ -51,58 +51,32 @@ makeMap = (callback) ->
     # height: two rows, no space between the rows:
     # height = 2 * 5 + 1 = 11
     for pb,i in percentBreakouts
-      r = 1+pb*3
+      w = 10*pb
       patternArea = (d) ->
         d.attr('patternUnits', 'userSpaceOnUse')
         .attr('x',0)
         .attr('y',0)
-        .attr('width',2.25)
-        .attr('height',1.375)
-        .attr('viewBox','0 0 18 11')
-      p = defs.append('pattern')
-        .attr('id', "lowerpattern-#{pb}")
-        .call(patternArea)
-      p.append('circle')
-        .attr('cx',3)
-        .attr('cy',3)
-        .attr('r', r)
-        .attr('fill', d3.rgb('white'))
-      p.append('circle')
-        .attr('cx',11.5)
-        .attr('cy',8)
-        .attr('r', r)
-        .attr('fill', d3.rgb('white'))
+        .attr('width',1)
+        .attr('height',1)
+        .attr('viewBox','0 0 10 10')
       p = defs.append('pattern')
         .attr('id', "middlepattern-#{pb}")
         .call(patternArea)
-      p.append('circle')
-        .attr('cx',9)
-        .attr('cy',3)
-        .attr('r', r)
-        .attr('fill', d3.rgb('blue').brighter())
-      p.append('circle')
-        .attr('cx',0)
-        .attr('cy',8)
-        .attr('r', r)
-        .attr('fill', d3.rgb('blue').brighter())
-      p.append('circle')
-        .attr('cx',18)
-        .attr('cy',8)
-        .attr('r', r)
+      p.append('rect')
+        .attr('x',0)
+        .attr('y',0)
+        .attr('width', w)
+        .attr('height', 10)
         .attr('fill', d3.rgb('blue').brighter())
       p = defs.append('pattern')
         .attr('id', "upperpattern-#{pb}")
         .call(patternArea)
-      p.append('circle')
-        .attr('cx',15)
-        .attr('cy',3)
-        .attr('r', r)
-        .attr('fill', d3.rgb('yellow').brighter().brighter())
-      p.append('circle')
-        .attr('cx',6)
-        .attr('cy',8)
-        .attr('r', r)
-        .attr('fill', d3.rgb('yellow').brighter().brighter())
+      p.append('rect')
+        .attr('x',10-w)
+        .attr('y',0)
+        .attr('width', w)
+        .attr('height', 10)
+        .attr('fill', d3.rgb('red').brighter().brighter())
     parts = svg.selectAll('.part')
       .data(json.features, (d) -> "#{d.properties.State}-#{d.properties.PUMA5}-#{d.properties.PERIMETER}")
 
@@ -110,6 +84,7 @@ makeMap = (callback) ->
       .append('path')
       .attr('id', (d)-> "lower-#{d.properties.State}-#{d.properties.PUMA5}-#{d.properties.PERIMETER}")
       .attr('class','part lower')
+      .attr('fill', 'white')
       .attr('d',path)
     parts.enter()
       .append('path')
@@ -154,7 +129,7 @@ paintMap = ->
             result[k].total = result[k].lower + result[k].middle + result[k].upper
             d.properties.AREA = 0.01 if d.properties.AREA < 0.01
             # from 500 to 2 million, lets change the pattern circle radius depending on this density.
-            d.properties.samplesPerArea = result[k].total / d.properties.AREA
+            d.properties.samplesPerArea = result[k].total
             minSPA = d.properties.samplesPerArea if minSPA == 0 or minSPA > d.properties.samplesPerArea
             maxSPA = d.properties.samplesPerArea if maxSPA == 0 or maxSPA < d.properties.samplesPerArea
             #console.log "samples per area? #{result[k].total} / #{d.properties.AREA} = #{result[k].total / d.properties.AREA}"
@@ -164,12 +139,6 @@ paintMap = ->
         #console.log "working with #{minSPA} and #{maxSPA}: #{densityopacitymap(minSPA)} and #{densityopacitymap(maxSPA)}"
         d = d3.selectAll(".lower")
           .data(features, (d) -> "#{d.properties.State}-#{d.properties.PUMA5}-#{d.properties.PERIMETER}")
-        d.exit().remove()
-        d.attr('fill', (d) ->
-            k = "#{d.properties.State}-#{d.properties.PUMA5}"
-            val = breakout(result[k].lower / result[k].total,percentBreakouts)
-            "url(#lowerpattern-#{val})"
-          )
           .attr('opacity', (d) -> densityopacitymap(d.properties.samplesPerArea) )
         d = d3.selectAll(".middle")
           .data(features, (d) -> "#{d.properties.State}-#{d.properties.PUMA5}-#{d.properties.PERIMETER}")

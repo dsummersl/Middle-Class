@@ -8,6 +8,9 @@ samples <- read.csv(commandArgs(TRUE))
 # SCHL = schooling
 # PINCP = total person's income
 # ST = State
+# TODO INTP interest income
+# TODO RETP retirement income
+# INTP, OIP, PAP, PERNP, PINCP, RETP, SEMP, SSIP, SSP, and WAGP in the person record.
 
 # TODO additional fields I like:
 # FINC = family income
