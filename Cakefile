@@ -158,3 +158,66 @@ task 'mapcommands', 'Build the commands to build map.', (options) ->
     console.log "ogr2ogr -f 'GeoJSON' -simplify 0.02 #{dir}-combined.geojson #{dir}-combined.shp"
     console.log "rm #{dir}-combined.shp"
     console.log "mv #{dir}-combined.geojson public/svg"
+
+###
+task 'data1', 'Build some data with d3', ->
+  d3 = require('./app/lib/d3.min')
+  console.log "d3 version = "+ d3.version
+
+task 'data2', 'Build some data with d3', ->
+  hem = spawn 'hem', ['server']
+  phantom = require('phantom')
+  phantom.create (ph) ->
+    ph.createPage (page) ->
+      page.open 'http://localhost:9294/sandbox.html', (status) ->
+        page.evaluate (-> window), (window) ->
+          require = window.require
+          require('lib/d3.v2')
+          console.log("d3 version = "+ d3.version)
+          ph.exit()
+          hem.kill()
+
+task 'testold', 'Build some data with d3', ->
+  jsdom = require('jsdom')
+  jsdom.defaultDocumentFeatures = {
+    FetchExternalResources   : ['script'],
+    ProcessExternalResources : true,
+    MutationEvents           : true,
+    QuerySelector            : true
+  }
+  jsdom.env({
+    html: 'test/public/index.html'
+    scripts: [ fs.readFileSync('node_modules/jqueryify/index.js') ]
+    done: (errors,window) ->
+      console.log "looking..."
+      #console.log "Suites: "+ window.$('.runner .description').text()
+      console.log "Suites: "+ window.$('*').text()
+  })
+###
+
+task 'd3test', 'render my map to a file.', ->
+  require 'd3/index.js'
+  extras = require('./middleclass/client/extras')
+
+  #try
+  puma = JSON.parse(fs.readFileSync("middleclass/public/svg/5percent-combined.geojson"))
+  console.log "puma = #{(f.properties.PUMA5 for f in puma.features).length}"
+  #extras.populateMap(fs,null,'body',puma)
+  path = d3.geo.path()
+  svg = d3.select('body').append('svg')
+  parts = svg.selectAll('.part')
+    .data(puma.features, (d) -> "#{d.properties.State}-#{d.properties.PUMA5}-#{d.properties.PERIMETER}")
+  parts.enter()
+    .append('path')
+    .attr('id', (d)-> "lower-#{d.properties.State}-#{d.properties.PUMA5}-#{d.properties.PERIMETER}")
+    .attr('class','part lower')
+    .attr('fill', 'black')
+    .attr('d',path)
+  html = d3.select("svg")
+    .attr("title", "test2")
+    .attr("version", 1.1)
+    .attr("xmlns", "http://www.w3.org/2000/svg")
+    .node().parentNode.innerHTML
+  fs.writeFile("t.svg",html)
+  #catch e
+  #  console.log "error #{e}"
