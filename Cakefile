@@ -202,22 +202,12 @@ task 'd3test', 'render my map to a file.', ->
   #try
   puma = JSON.parse(fs.readFileSync("middleclass/public/svg/5percent-combined.geojson"))
   console.log "puma = #{(f.properties.PUMA5 for f in puma.features).length}"
-  #extras.populateMap(fs,null,'body',puma)
-  path = d3.geo.path()
-  svg = d3.select('body').append('svg')
-  parts = svg.selectAll('.part')
-    .data(puma.features, (d) -> "#{d.properties.State}-#{d.properties.PUMA5}-#{d.properties.PERIMETER}")
-  parts.enter()
-    .append('path')
-    .attr('id', (d)-> "lower-#{d.properties.State}-#{d.properties.PUMA5}-#{d.properties.PERIMETER}")
-    .attr('class','part lower')
-    .attr('fill', 'black')
-    .attr('d',path)
+  extras.populateMap('body',puma)
   html = d3.select("svg")
-    .attr("title", "test2")
+    .attr("title", "Map Rendering")
     .attr("version", 1.1)
     .attr("xmlns", "http://www.w3.org/2000/svg")
     .node().parentNode.innerHTML
-  fs.writeFile("t.svg",html)
+  fs.writeFile("out.svg",html)
   #catch e
   #  console.log "error #{e}"

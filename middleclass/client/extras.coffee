@@ -54,8 +54,10 @@ populateMap = (target,json,callback) ->
   # width = 3 * 5 + .5 + 1 + 1 + .5 = 15 + 3 = 18
   # height: two rows, no space between the rows:
   # height = 2 * 5 + 1 = 11
+  console.log "w = xxx"
   for pb,i in percentBreakouts
     w = 10*pb
+    console.log "w = #{w}"
     patternArea = (d) ->
       d.attr('patternUnits', 'userSpaceOnUse')
       .attr('x',0)
@@ -99,22 +101,22 @@ populateMap = (target,json,callback) ->
     .attr('id', (d)-> "upper-#{d.properties.State}-#{d.properties.PUMA5}-#{d.properties.PERIMETER}")
     .attr('class','part upper')
     .attr('d',path)
-    ### TODO support a mouseover graphic
-    .on('mouseover', (d) ->
-      $('#hoverdetail').text("State: #{d.properties.State}")
-      console.log "doing a mouse over for #upper-#{d.properties.State}-#{d.properties.PUMA5}-#{d.properties.PERIMETER}"
-    )
-    .on('mouseout', (d) ->
-      $('#hoverdetail').text("US")
-      console.log "doing a mouse over for #upper-#{d.properties.State}-#{d.properties.PUMA5}-#{d.properties.PERIMETER}"
-    )
-    ###
-  callback()
+  ### TODO support a mouseover graphic
+  .on('mouseover', (d) ->
+    $('#hoverdetail').text("State: #{d.properties.State}")
+    console.log "doing a mouse over for #upper-#{d.properties.State}-#{d.properties.PUMA5}-#{d.properties.PERIMETER}"
+  )
+  .on('mouseout', (d) ->
+    $('#hoverdetail').text("US")
+    console.log "doing a mouse over for #upper-#{d.properties.State}-#{d.properties.PUMA5}-#{d.properties.PERIMETER}"
+  )
+  ###
+  callback?()
 
+# make a call, and repain the map, using Meteor constants to keep it up to date.
 paintMap = ->
   paintMapContext = new Meteor.deps.Context()
   paintMapContext.on_invalidate paintMap
-
   paintMapContext.run ->
     $('#startupdialog').fadeIn()
     Session.set('status',"Updating map...")
@@ -123,50 +125,55 @@ paintMap = ->
         console.log "ERROR: #{err}"
       else
         Session.set('status',"Loading stats...")
-        features = []
-        minSPA = 0
-        maxSPA = 0
-        for d in Session.get('map').features
-          k = "#{d.properties.State}-#{d.properties.PUMA5}"
-          if result[k]?
-            features.push(d)
-            result[k].total = result[k].lower + result[k].middle + result[k].upper
-            d.properties.AREA = 0.01 if d.properties.AREA < 0.01
-            # from 500 to 2 million, lets change the pattern circle radius depending on this density.
-            d.properties.samplesPerArea = result[k].total
-            minSPA = d.properties.samplesPerArea if minSPA == 0 or minSPA > d.properties.samplesPerArea
-            maxSPA = d.properties.samplesPerArea if maxSPA == 0 or maxSPA < d.properties.samplesPerArea
-            #console.log "samples per area? #{result[k].total} / #{d.properties.AREA} = #{result[k].total / d.properties.AREA}"
-
-        om = d3.scale.sqrt().domain([minSPA,maxSPA]).range([0,1])
-        densityopacitymap = (d) -> om(d) + 0.3
-        #console.log "working with #{minSPA} and #{maxSPA}: #{densityopacitymap(minSPA)} and #{densityopacitymap(maxSPA)}"
-        d = d3.selectAll(".lower")
-          .data(features, (d) -> "#{d.properties.State}-#{d.properties.PUMA5}-#{d.properties.PERIMETER}")
-          .attr('opacity', (d) -> densityopacitymap(d.properties.samplesPerArea) )
-        d = d3.selectAll(".middle")
-          .data(features, (d) -> "#{d.properties.State}-#{d.properties.PUMA5}-#{d.properties.PERIMETER}")
-        d.exit().remove()
-        d.attr('fill', (d) ->
-            k = "#{d.properties.State}-#{d.properties.PUMA5}"
-            val = breakout(result[k].middle / result[k].total,percentBreakouts)
-            "url(#middlepattern-#{val})"
-          )
-          .attr('opacity', (d) -> densityopacitymap(d.properties.samplesPerArea) )
-        d = d3.selectAll(".upper")
-          .data(features, (d) -> "#{d.properties.State}-#{d.properties.PUMA5}-#{d.properties.PERIMETER}")
-        d.exit().remove()
-        d.attr('fill', (d) ->
-            k = "#{d.properties.State}-#{d.properties.PUMA5}"
-            val = breakout(result[k].upper / result[k].total,percentBreakouts)
-            "url(#upperpattern-#{val})"
-          )
-          .attr('opacity', (d) -> densityopacitymap(d.properties.samplesPerArea) )
-        $('#startupdialog').fadeOut()
+        doPaintMap(result)
     )
+
+# a non-meteor method that updates the map.
+doPaintMap = (result) ->
+  features = []
+  minSPA = 0
+  maxSPA = 0
+  for d in Session.get('map').features
+    k = "#{d.properties.State}-#{d.properties.PUMA5}"
+    if result[k]?
+      features.push(d)
+      result[k].total = result[k].lower + result[k].middle + result[k].upper
+      d.properties.AREA = 0.01 if d.properties.AREA < 0.01
+      # from 500 to 2 million, lets change the pattern circle radius depending on this density.
+      d.properties.samplesPerArea = result[k].total
+      minSPA = d.properties.samplesPerArea if minSPA == 0 or minSPA > d.properties.samplesPerArea
+      maxSPA = d.properties.samplesPerArea if maxSPA == 0 or maxSPA < d.properties.samplesPerArea
+      #console.log "samples per area? #{result[k].total} / #{d.properties.AREA} = #{result[k].total / d.properties.AREA}"
+
+  om = d3.scale.sqrt().domain([minSPA,maxSPA]).range([0,1])
+  densityopacitymap = (d) -> om(d) + 0.3
+  #console.log "working with #{minSPA} and #{maxSPA}: #{densityopacitymap(minSPA)} and #{densityopacitymap(maxSPA)}"
+  d = d3.selectAll(".lower")
+    .data(features, (d) -> "#{d.properties.State}-#{d.properties.PUMA5}-#{d.properties.PERIMETER}")
+    .attr('opacity', (d) -> densityopacitymap(d.properties.samplesPerArea) )
+  d = d3.selectAll(".middle")
+    .data(features, (d) -> "#{d.properties.State}-#{d.properties.PUMA5}-#{d.properties.PERIMETER}")
+  d.exit().remove()
+  d.attr('fill', (d) ->
+      k = "#{d.properties.State}-#{d.properties.PUMA5}"
+      val = breakout(result[k].middle / result[k].total,percentBreakouts)
+      "url(#middlepattern-#{val})"
+    )
+    .attr('opacity', (d) -> densityopacitymap(d.properties.samplesPerArea) )
+  d = d3.selectAll(".upper")
+    .data(features, (d) -> "#{d.properties.State}-#{d.properties.PUMA5}-#{d.properties.PERIMETER}")
+  d.exit().remove()
+  d.attr('fill', (d) ->
+      k = "#{d.properties.State}-#{d.properties.PUMA5}"
+      val = breakout(result[k].upper / result[k].total,percentBreakouts)
+      "url(#upperpattern-#{val})"
+    )
+    .attr('opacity', (d) -> densityopacitymap(d.properties.samplesPerArea) )
+  $('#startupdialog').fadeOut()
 
 # hack for cakefile to read this as an npm module...
 module?.exports =
   makeMap: makeMap
   populateMap: populateMap
+  doPaintMap: doPaintMap
   paintMap: paintMap
