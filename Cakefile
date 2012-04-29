@@ -3,6 +3,7 @@ exec = require('child_process').exec
 spawn = require('child_process').spawn
 mongoose = require('mongoose')
 common = require('./middleclass/server/common')
+require('fibers')
 
 execHandler = (error,stdout,stderr) ->
   console.log stdout
@@ -74,7 +75,6 @@ task 'manualprocess', 'given a csv file, manually convert it to CSV and import i
 # mongorestore --host localhost:3002 dump
 
 task 'buildGroups', 'Once the dbs are built, use this command to build extra caches', ->
-  require('fibers')
   Fiber( () ->
     console.log "starting"
     conn = common.dbconnect('mongodb://127.0.0.1:3002/meteor')
@@ -199,15 +199,26 @@ task 'd3test', 'render my map to a file.', ->
   require 'd3/index.js'
   extras = require('./middleclass/client/extras')
 
-  #try
-  puma = JSON.parse(fs.readFileSync("middleclass/public/svg/5percent-combined.geojson"))
-  console.log "puma = #{(f.properties.PUMA5 for f in puma.features).length}"
-  extras.populateMap('body',puma)
-  html = d3.select("svg")
-    .attr("title", "Map Rendering")
-    .attr("version", 1.1)
-    .attr("xmlns", "http://www.w3.org/2000/svg")
-    .node().parentNode.innerHTML
-  fs.writeFile("out.svg",html)
-  #catch e
-  #  console.log "error #{e}"
+  Fiber( () ->
+    try
+      # note: meteor server needs to be up:
+      conn = common.dbconnect('mongodb://127.0.0.1:3002/meteor')
+      
+      puma = JSON.parse(fs.readFileSync("middleclass/public/svg/5percent-combined.geojson"))
+      console.log "puma = #{(f.properties.PUMA5 for f in puma.features).length}"
+      extras.doMakeMap('body',puma)
+
+      result = common.getGroup(conn,25,60)
+      console.log "painting"
+      extras.doPaintMap(result,puma)
+      console.log "done painting"
+
+      html = d3.select("svg")
+        .attr("title", "Map Rendering")
+        .attr("version", 1.1)
+        .attr("xmlns", "http://www.w3.org/2000/svg")
+        .node().parentNode.innerHTML
+      fs.writeFile("out.svg",html)
+    catch e
+      console.log "error #{e}"
+  ).run()

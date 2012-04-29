@@ -42,10 +42,10 @@ percentBreakouts.push(1)
 
 makeMap = (callback) ->
   d3.json 'svg/5percent-combined.geojson', (json) ->
-    populateMap('#map',json,callback)
+    doMakeMap('#map',json,callback)
 
 # given a map (json), put it on the target.
-populateMap = (target,json,callback) ->
+doMakeMap = (target,json,callback) ->
   Session?.set('map',json)
   path = d3.geo.path()
   svg = d3.select(target).append('svg')
@@ -125,15 +125,16 @@ paintMap = ->
         console.log "ERROR: #{err}"
       else
         Session.set('status',"Loading stats...")
-        doPaintMap(result)
+        doPaintMap(result,Session.get('map'))
+        $('#startupdialog').fadeOut()
     )
 
 # a non-meteor method that updates the map.
-doPaintMap = (result) ->
+doPaintMap = (result,map) ->
   features = []
   minSPA = 0
   maxSPA = 0
-  for d in Session.get('map').features
+  for d in map.features
     k = "#{d.properties.State}-#{d.properties.PUMA5}"
     if result[k]?
       features.push(d)
@@ -169,11 +170,10 @@ doPaintMap = (result) ->
       "url(#upperpattern-#{val})"
     )
     .attr('opacity', (d) -> densityopacitymap(d.properties.samplesPerArea) )
-  $('#startupdialog').fadeOut()
 
 # hack for cakefile to read this as an npm module...
 module?.exports =
   makeMap: makeMap
-  populateMap: populateMap
+  doMakeMap: doMakeMap
   doPaintMap: doPaintMap
   paintMap: paintMap
