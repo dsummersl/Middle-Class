@@ -1,0 +1,87 @@
+<html>
+  <head>
+    <link rel="stylesheet" href="css/bootstrap.min.css" type="text/css" charset="utf-8">
+    <script src="lib/jquery.min.js" type="text/javascript" charset="utf-8"></script>
+    <script src="lib/d3.v2.js" type="text/javascript" charset="utf-8"></script>
+    <style type="text/css">
+      .bordered {
+        border: 1px solid #555;
+      }
+      .zoomin {
+        float: left;
+      }
+      .zoomin p {
+        text-align: center;
+      }
+    </style>
+    <script type="text/javascript">
+      var boxAndZoom = function(xml,x,y,targetX,targetY,name) {
+        var xmlnode = document.importNode(xml.documentElement, true);
+        d3.select('#mainrow').append('div')
+          .attr('class','zoomin')
+          .node().appendChild(xmlnode);
+        var svg = d3.select('.zoomin:last-child').select('svg');
+        svg.attr('width',''+ 35*4)
+          .attr('height',''+ 35*4);
+        var defs = svg.select('defs');
+        var scale = 4;
+        var offsetX = (targetX/scale - x);
+        var offsetY = (targetY/scale - y);
+        defs.append('svg:clipPath')
+          .attr('id','firstbox')
+          .append('rect')
+          .attr('id','firstbox-box')
+          .attr('x',x)
+          .attr('y',y)
+          .attr('width',35)
+          .attr('height',35)
+          .style('fill','none')
+          //.style('stroke','black')
+          ;
+        svg.select('g')
+          .style('clip-path','url(#firstbox)')
+          .attr('transform','scale('+ scale +') translate('+ offsetX +','+ offsetY +')')
+          .append('use')
+          .attr('xlink:href','#firstbox-box')
+        d3.select('.zoomin:last-child').append('p')
+          .text(name);
+      }
+      $(document).ready(function () {
+        d3.xml("out.svg", "image/svg+xml", function (xml) {
+          boxAndZoom(xml,175,275,10,10,'Los Angeles');
+          boxAndZoom(xml,140,195,10,10,'San Francisco');
+          boxAndZoom(xml,175,25,10,10,'Seattle');
+          boxAndZoom(xml,285,175,10,10,'Salt Lake City');
+          boxAndZoom(xml,365,200,10,10,'Denver');
+          boxAndZoom(xml,270,307,10,10,'Pheonix');
+          boxAndZoom(xml,480,325,10,10,'Dallas');
+          boxAndZoom(xml,505,375,10,10,'Houston');
+          boxAndZoom(xml,510,210,10,10,'Kansas City');
+          boxAndZoom(xml,520,110,10,10,'Minneapolis');
+          boxAndZoom(xml,520,110,10,10,'Minneapolis');
+          boxAndZoom(xml,580,130,10,10,'Milwaukee');
+          boxAndZoom(xml,590,165,10,10,'Chicago');
+          boxAndZoom(xml,565,220,10,10,'St. Louis');
+          boxAndZoom(xml,645,140,10,10,'Detroit');
+          boxAndZoom(xml,652,190,10,10,'Columbus');
+          boxAndZoom(xml,620,255,10,10,'Nashville');
+          boxAndZoom(xml,655,290,10,10,'Atlanta');
+          boxAndZoom(xml,710,388,10,10,'Orlando');
+          boxAndZoom(xml,730,420,10,10,'Miami');
+          boxAndZoom(xml,715,253,10,10,'Charlotte');
+          boxAndZoom(xml,740,190,10,10,'Washington DC');
+          boxAndZoom(xml,765,150,10,10,'New York');
+          boxAndZoom(xml,795,105,10,10,'Boston');
+        });
+      });
+    </script>
+  </head>
+  <body>
+    <div class="container">
+      <div class="row">
+        <div class="span12" id="mainrow">
+        </div>
+      </div>
+    </div>
+  </body>
+</html>
