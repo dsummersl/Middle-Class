@@ -50,6 +50,8 @@ doMakeMap = (target,json,callback) ->
   path = d3.geo.path()
   svg = d3.select(target).append('svg')
   defs = svg.append('defs')
+  mainG = svg.append('g')
+    .attr('id','mapparts')
   # width: each circle is radius 5, and I want to show 3 whole ones on the top layer
   # width = 3 * 5 + .5 + 1 + 1 + .5 = 15 + 3 = 18
   # height: two rows, no space between the rows:
@@ -83,7 +85,7 @@ doMakeMap = (target,json,callback) ->
       .attr('width', w)
       .attr('height', 10)
       .attr('fill', d3.rgb('red').brighter().brighter())
-  parts = svg.selectAll('.part')
+  parts = mainG.selectAll('.part')
     .data(json.features, (d) -> "#{d.properties.State}-#{d.properties.PUMA5}-#{d.properties.PERIMETER}")
   parts.enter()
     .append('path')
@@ -151,7 +153,7 @@ doPaintMap = (result,map) ->
   #console.log "working with #{minSPA} and #{maxSPA}: #{densityopacitymap(minSPA)} and #{densityopacitymap(maxSPA)}"
   d = d3.selectAll(".lower")
     .data(features, (d) -> "#{d.properties.State}-#{d.properties.PUMA5}-#{d.properties.PERIMETER}")
-    .attr('opacity', (d) -> densityopacitymap(d.properties.samplesPerArea) )
+    #.attr('opacity', (d) -> densityopacitymap(d.properties.samplesPerArea) )
   d = d3.selectAll(".middle")
     .data(features, (d) -> "#{d.properties.State}-#{d.properties.PUMA5}-#{d.properties.PERIMETER}")
   d.exit().remove()
@@ -160,7 +162,7 @@ doPaintMap = (result,map) ->
       val = breakout(result[k].middle / result[k].total,percentBreakouts)
       "url(#middlepattern-#{val})"
     )
-    .attr('opacity', (d) -> densityopacitymap(d.properties.samplesPerArea) )
+    #.attr('opacity', (d) -> densityopacitymap(d.properties.samplesPerArea) )
   d = d3.selectAll(".upper")
     .data(features, (d) -> "#{d.properties.State}-#{d.properties.PUMA5}-#{d.properties.PERIMETER}")
   d.exit().remove()
@@ -169,7 +171,7 @@ doPaintMap = (result,map) ->
       val = breakout(result[k].upper / result[k].total,percentBreakouts)
       "url(#upperpattern-#{val})"
     )
-    .attr('opacity', (d) -> densityopacitymap(d.properties.samplesPerArea) )
+    #.attr('opacity', (d) -> densityopacitymap(d.properties.samplesPerArea) )
 
 # hack for cakefile to read this as an npm module...
 module?.exports =

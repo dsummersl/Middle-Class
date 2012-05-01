@@ -217,8 +217,12 @@ task 'd3test', 'render my map to a file.', ->
         .attr("title", "Map Rendering")
         .attr("version", 1.1)
         .attr("xmlns", "http://www.w3.org/2000/svg")
+        .attr("xmlns:xlink", "http://www.w3.org/1999/xlink")
+        #<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xml:space="preserve" xmlns:xml="http://www.w3.org/XML/1998/namespace" width="400" height="150" viewBox="0 0 400 150">
         .node().parentNode.innerHTML
       fs.writeFile("out.svg",html)
+      console.log "done writing"
+      conn.db.disconnect()
     catch e
       console.log "error #{e}"
   ).run()
