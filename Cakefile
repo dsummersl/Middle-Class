@@ -80,7 +80,7 @@ task 'manualprocess', 'given a csv file, manually convert it to CSV and import i
     conn.db.disconnect()
   )
 
-# mongodump ---host 127.0.0.1:3002 -d meteor
+# mongodump --host 127.0.0.1:3002 -d meteor
 # tar zcvf dump.tgz dump
 # mv dump.tgz lib
 # rm -rf dump
