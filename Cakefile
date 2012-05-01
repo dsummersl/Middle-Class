@@ -51,7 +51,21 @@ task 'cookCSV', 'take the raw CSV and turn it into cooked down CSV suitable for 
   cnt = 0
   console.log "State,PUMA,Sex,Age,School,Income,IncomeCount"
   reader.addListener 'data', (d) ->
-    key = "#{d.ST},#{d.PUMA},#{d.SEX},#{common.breakout(d.AGEP,common.ageMarkers)},#{d.SCHL},#{common.breakout(d.PINCP,common.moneyMarkers)}"
+    # INTP = interest income
+    # RETP = retirement income
+    # PINCP = personal income
+    # OIP = other income
+    # PAP = public assistance
+    # PERNP = total personal earnings
+    # SEMP = self employment income
+    # SSIP = supplementary security income
+    # SSP = social security income
+    # WAGP = wages and salary the last 12 months
+    #console.log "INTP #{d.INTP} RETP #{d.RETP} PINCP #{d.PINCP} OIP #{d.OIP} PAP #{d.PAP} PERNP #{d.PERNP} SEMP #{d.SEMP} SSIP #{d.SSIP} SSP #{d.SSP} WAGP #{d.WAGP}"
+    # I don't need to include these other columns b/c they are all wrapped up into the PINCP values
+    adj = d.ADJINC / 1000000
+    total = d.PINCP*adj
+    key = "#{d.ST},#{d.PUMA},#{d.SEX},#{common.breakout(d.AGEP,common.ageMarkers)},#{d.SCHL},#{common.breakout(total,common.moneyMarkers)}"
     cooked[key] = 0 if not cooked[key]
     cooked[key] += 1
     cnt++
@@ -61,7 +75,7 @@ task 'cookCSV', 'take the raw CSV and turn it into cooked down CSV suitable for 
       console.log "#{k},#{v}"
 
 task 'manualprocess', 'given a csv file, manually convert it to CSV and import it to mongo.', (options) ->
-  conn = common.dbconnect()
+  conn = common.dbconnect('mongodb://127.0.0.1:3002/meteor')
   importCSV(conn,options.param, ->
     conn.db.disconnect()
   )
@@ -99,13 +113,7 @@ task 'buildGroups', 'Once the dbs are built, use this command to build extra cac
   ).run()
 
 task 'processdata', 'move the census data into mongodb (data should be in /Volumes/My Book/data external drive)', (options) ->
-  # Strangely I had a couple problems importing these files:
-  #  - iowa...had one fewer income bracket than every other state.
-  #  - texas...had the largest CSV file. I had to split it in half in order for R to process the thing (its about a gig)
-  #    wc ss10ptx.csv
-  #    split -l 587063 ss10ptx.csv ss10ptxsplit.csv
-  #    manually put the first line onto the second split file.
-  conn = common.dbconnect()
+  conn = common.dbconnect('mongodb://127.0.0.1:3002/meteor')
   dir = '/Volumes/My Book/data/'
   fs.readdir dir, (err,list) =>
     fn = (listIndex,done) =>
@@ -158,42 +166,6 @@ task 'mapcommands', 'Build the commands to build map.', (options) ->
     console.log "ogr2ogr -f 'GeoJSON' -simplify 0.02 #{dir}-combined.geojson #{dir}-combined.shp"
     console.log "rm #{dir}-combined.shp"
     console.log "mv #{dir}-combined.geojson public/svg"
-
-###
-task 'data1', 'Build some data with d3', ->
-  d3 = require('./app/lib/d3.min')
-  console.log "d3 version = "+ d3.version
-
-task 'data2', 'Build some data with d3', ->
-  hem = spawn 'hem', ['server']
-  phantom = require('phantom')
-  phantom.create (ph) ->
-    ph.createPage (page) ->
-      page.open 'http://localhost:9294/sandbox.html', (status) ->
-        page.evaluate (-> window), (window) ->
-          require = window.require
-          require('lib/d3.v2')
-          console.log("d3 version = "+ d3.version)
-          ph.exit()
-          hem.kill()
-
-task 'testold', 'Build some data with d3', ->
-  jsdom = require('jsdom')
-  jsdom.defaultDocumentFeatures = {
-    FetchExternalResources   : ['script'],
-    ProcessExternalResources : true,
-    MutationEvents           : true,
-    QuerySelector            : true
-  }
-  jsdom.env({
-    html: 'test/public/index.html'
-    scripts: [ fs.readFileSync('node_modules/jqueryify/index.js') ]
-    done: (errors,window) ->
-      console.log "looking..."
-      #console.log "Suites: "+ window.$('.runner .description').text()
-      console.log "Suites: "+ window.$('*').text()
-  })
-###
 
 task 'd3test', 'render my map to a file.', ->
   require 'd3/index.js'
