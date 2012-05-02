@@ -15,7 +15,7 @@
       }
     </style>
     <script type="text/javascript">
-      var boxAndZoom = function(xml,x,y,targetX,targetY,name) {
+      var boxAndZoom = function(xml,x,y,name,scale) {
         var xmlnode = document.importNode(xml.documentElement, true);
         d3.select('#mainrow').append('div')
           .attr('class','zoomin')
@@ -24,9 +24,9 @@
         svg.attr('width',''+ 35*4)
           .attr('height',''+ 35*4);
         var defs = svg.select('defs');
-        var scale = 4;
-        var offsetX = (targetX/scale - x);
-        var offsetY = (targetY/scale - y);
+        var scale = 5 || scale;
+        var offsetX = (10/scale - x);
+        var offsetY = (10/scale - y);
         defs.append('svg:clipPath')
           .attr('id','firstbox')
           .append('rect')
@@ -47,6 +47,8 @@
           .text(name);
       }
       $(document).ready(function () {
+        d3.xml("out.svg", "image/svg+xml", function (xml) {
+          /*
         d3.json("svg/5percent-combined.geojson", function (json) {
           d3.xml("tophat.svg", "image/svg+xml", function (tophat) {
             var path = d3.geo.path();
@@ -77,42 +79,31 @@
               .attr('width', 500)
               .attr('height', 500)
               .attr('fill','url(#hatpattern)');
-
-            /*
-            var parts = svg.selectAll('.part')
-              .data(json.features)
-              .enter()
-              .append('path')
-              .style('mask','url(#tophat)')
-              .attr('d',path);
-            */
           });
-          /*
-          boxAndZoom(xml,175,275,10,10,'Los Angeles');
-          boxAndZoom(xml,140,195,10,10,'San Francisco');
-          boxAndZoom(xml,175,25,10,10,'Seattle');
-          boxAndZoom(xml,285,175,10,10,'Salt Lake City');
-          boxAndZoom(xml,365,200,10,10,'Denver');
-          boxAndZoom(xml,270,307,10,10,'Pheonix');
-          boxAndZoom(xml,480,325,10,10,'Dallas');
-          boxAndZoom(xml,505,375,10,10,'Houston');
-          boxAndZoom(xml,510,210,10,10,'Kansas City');
-          boxAndZoom(xml,520,110,10,10,'Minneapolis');
-          boxAndZoom(xml,520,110,10,10,'Minneapolis');
-          boxAndZoom(xml,580,130,10,10,'Milwaukee');
-          boxAndZoom(xml,590,165,10,10,'Chicago');
-          boxAndZoom(xml,565,220,10,10,'St. Louis');
-          boxAndZoom(xml,645,140,10,10,'Detroit');
-          boxAndZoom(xml,652,190,10,10,'Columbus');
-          boxAndZoom(xml,620,255,10,10,'Nashville');
-          boxAndZoom(xml,655,290,10,10,'Atlanta');
-          boxAndZoom(xml,710,388,10,10,'Orlando');
-          boxAndZoom(xml,730,420,10,10,'Miami');
-          boxAndZoom(xml,715,253,10,10,'Charlotte');
-          boxAndZoom(xml,740,190,10,10,'Washington DC');
-          boxAndZoom(xml,765,150,10,10,'New York');
-          boxAndZoom(xml,795,105,10,10,'Boston');
           */
+          boxAndZoom(xml,285,175,'Salt Lake City');
+          boxAndZoom(xml,370,202,'Denver');
+          boxAndZoom(xml,268,303,'Pheonix');
+          boxAndZoom(xml,510,216,'Kansas City');
+          boxAndZoom(xml,178,275,'Los Angeles');
+          boxAndZoom(xml,143,203,'San Francisco');
+          boxAndZoom(xml,180,30,'Seattle');
+          boxAndZoom(xml,480,325,'Dallas');
+          boxAndZoom(xml,505,378,'Houston');
+          boxAndZoom(xml,524,114,'Minneapolis');
+          boxAndZoom(xml,586,140,'Milwaukee');
+          boxAndZoom(xml,593,160,'Chicago');
+          boxAndZoom(xml,565,220,'St. Louis');
+          boxAndZoom(xml,649,142,'Detroit');
+          boxAndZoom(xml,656,194,'Columbus');
+          boxAndZoom(xml,620,261,'Nashville');
+          boxAndZoom(xml,658,293,'Atlanta');
+          boxAndZoom(xml,715,385,'Orlando');
+          boxAndZoom(xml,737,418,'Miami');
+          boxAndZoom(xml,712,257,'Charlotte');
+          boxAndZoom(xml,746,189,'Washington DC');
+          boxAndZoom(xml,777,150,'New York',6);
+          boxAndZoom(xml,804,110,'Boston');
         });
       });
     </script>
