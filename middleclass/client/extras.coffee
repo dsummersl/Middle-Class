@@ -42,11 +42,14 @@ percentBreakouts.push(1)
 
 makeMap = (callback) ->
   d3.json 'svg/5percent-combined.geojson', (json) ->
-    doMakeMap('#map',json,callback)
+    d3.xml 'tophat.svg', 'image/svg+xml', (rich) ->
+      doMakeMap('#map',json,rich,callback)
 
 # given a map (json), put it on the target.
-doMakeMap = (target,json,callback) ->
+# 'rich' is the rich pattern SVG assumed to be about 100x100
+doMakeMap = (target,json,rich,callback) ->
   Session?.set('map',json)
+  richObj = d3.select(document.importNode(rich.documentElement,true)).select('path').attr('d')
   path = d3.geo.path()
   svg = d3.select(target).append('svg')
   defs = svg.append('defs')
@@ -56,35 +59,58 @@ doMakeMap = (target,json,callback) ->
   # width = 3 * 5 + .5 + 1 + 1 + .5 = 15 + 3 = 18
   # height: two rows, no space between the rows:
   # height = 2 * 5 + 1 = 11
-  console.log "w = xxx"
   for pb,i in percentBreakouts
-    w = 10*pb
-    console.log "w = #{w}"
+    r = 1+pb*3
+    #console.log "pb = #{pb}"
     patternArea = (d) ->
       d.attr('patternUnits', 'userSpaceOnUse')
       .attr('x',0)
       .attr('y',0)
-      .attr('width',1)
-      .attr('height',1)
-      .attr('viewBox','0 0 10 10')
+      .attr('width',18)
+      .attr('height',11)
+      .attr('viewBox','0 0 18 11')
+    p = defs.append('pattern')
+      .attr('id', "lowerpattern-#{pb}")
+      .call(patternArea)
+    p.append('circle')
+      .attr('cx',3)
+      .attr('cy',3)
+      .attr('r', r)
+      .attr('fill', d3.rgb('white'))
+    p.append('circle')
+      .attr('cx',11.5)
+      .attr('cy',8)
+      .attr('r', r)
+      .attr('fill', d3.rgb('white'))
     p = defs.append('pattern')
       .attr('id', "middlepattern-#{pb}")
       .call(patternArea)
-    p.append('rect')
-      .attr('x',0)
-      .attr('y',0)
-      .attr('width', w)
-      .attr('height', 10)
+    p.append('circle')
+      .attr('cx',9)
+      .attr('cy',3)
+      .attr('r', r)
+      .attr('fill', d3.rgb('blue').brighter())
+    p.append('circle')
+      .attr('cx',0)
+      .attr('cy',8)
+      .attr('r', r)
+      .attr('fill', d3.rgb('blue').brighter())
+    p.append('circle')
+      .attr('cx',18)
+      .attr('cy',8)
+      .attr('r', r)
       .attr('fill', d3.rgb('blue').brighter())
     p = defs.append('pattern')
       .attr('id', "upperpattern-#{pb}")
       .call(patternArea)
-    p.append('rect')
-      .attr('x',10-w)
-      .attr('y',0)
-      .attr('width', w)
-      .attr('height', 10)
+    p.append('path')
+      .attr('transform', "scale(#{0.06*pb}) translate(#{15/0.06/pb},#{3/0.06/pb})")
       .attr('fill', d3.rgb('red').brighter().brighter())
+      .attr('d', richObj)
+    p.append('path')
+      .attr('transform', "scale(#{0.06*pb}) translate(#{6/0.06/pb},#{8/0.06/pb})")
+      .attr('fill', d3.rgb('red').brighter().brighter())
+      .attr('d', richObj)
   parts = mainG.selectAll('.part')
     .data(json.features, (d) -> "#{d.properties.State}-#{d.properties.PUMA5}-#{d.properties.PERIMETER}")
   parts.enter()

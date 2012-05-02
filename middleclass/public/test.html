@@ -47,7 +47,47 @@
           .text(name);
       }
       $(document).ready(function () {
-        d3.xml("out.svg", "image/svg+xml", function (xml) {
+        d3.json("svg/5percent-combined.geojson", function (json) {
+          d3.xml("tophat.svg", "image/svg+xml", function (tophat) {
+            var path = d3.geo.path();
+            var svg = d3.select('#mainrow').append('svg');
+            var defs = svg.append('defs');
+            defs.append('clipPath')
+              .attr('id','tophat')
+              .append('path')
+              .style('fill','#333')
+              .style('stroke','black')
+              .attr('d',d3.select(document.importNode(tophat.documentElement,true)).select('path').attr('d'));
+            defs.append('pattern')
+              .attr('id','hatpattern')
+              .attr('patternUnits', 'userSpaceOnUse')
+              .attr('x',0)
+              .attr('y',0)
+              .attr('width',50)
+              .attr('height',50)
+              .attr('viewBox','0 0 50 50')
+              .append('path')
+              .style('fill','red')
+              .attr('transform','scale(0.5)')
+              .attr('d',d3.select(document.importNode(tophat.documentElement,true)).select('path').attr('d'));
+
+            svg.append('rect')
+              .attr('x', 0)
+              .attr('y', 0)
+              .attr('width', 500)
+              .attr('height', 500)
+              .attr('fill','url(#hatpattern)');
+
+            /*
+            var parts = svg.selectAll('.part')
+              .data(json.features)
+              .enter()
+              .append('path')
+              .style('mask','url(#tophat)')
+              .attr('d',path);
+            */
+          });
+          /*
           boxAndZoom(xml,175,275,10,10,'Los Angeles');
           boxAndZoom(xml,140,195,10,10,'San Francisco');
           boxAndZoom(xml,175,25,10,10,'Seattle');
@@ -72,6 +112,7 @@
           boxAndZoom(xml,740,190,10,10,'Washington DC');
           boxAndZoom(xml,765,150,10,10,'New York');
           boxAndZoom(xml,795,105,10,10,'Boston');
+          */
         });
       });
     </script>
