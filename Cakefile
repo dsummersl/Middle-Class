@@ -3,6 +3,7 @@ exec = require('child_process').exec
 spawn = require('child_process').spawn
 mongoose = require('mongoose')
 common = require('./middleclass/server/common')
+extras = require('./middleclass/client/extras')
 require('fibers')
 
 execHandler = (error,stdout,stderr) ->
@@ -131,7 +132,7 @@ task 'processdata', 'move the census data into mongodb (data should be in /Volum
 
 task 'mapcommands', 'Build the commands to build map.', (options) ->
   # TODO states to remove: 72 (puerto rico)?
-  if options.type not in ['1percent','5percent']
+  if options.param not in ['1percent','5percent']
     console.log "You need to specify a type: 1percent or 5percent"
     return
   # Before you can do this you need to download the actual
@@ -141,7 +142,7 @@ task 'mapcommands', 'Build the commands to build map.', (options) ->
   # sh ../bin/get5percent.sh
   # for i in *.zip; do unzip $i; done
   # cd ..
-  dir = options.type
+  dir = options.param
   fs.readdir dir, (err,list) =>
     cmds = []
     first = true
@@ -164,37 +165,110 @@ task 'mapcommands', 'Build the commands to build map.', (options) ->
     # simplify as much as possible (high a double as posible) w/o losing clarity (this makes the
     # file go from 21megs to 2 megs):
     console.log "ogr2ogr -f 'GeoJSON' -simplify 0.02 #{dir}-combined.geojson #{dir}-combined.shp"
+    console.log "ogr2ogr -f 'GeoJSON' -simplify 0.001 #{dir}-huge.geojson #{dir}-combined.shp"
     console.log "rm #{dir}-combined.shp"
-    console.log "mv #{dir}-combined.geojson public/svg"
+    console.log "mv #{dir}-combined.geojson middleclass/public/svg"
+    console.log "mv #{dir}-huge.geojson middleclass/public/svg"
 
-task 'd3test', 'render my map to a file.', ->
+task 'makecitymaps', 'render all map SVGs used to make final viz.', ->
   require 'd3/index.js'
-  extras = require('./middleclass/client/extras')
 
   Fiber( () ->
-    try
-      # note: meteor server needs to be up:
-      conn = common.dbconnect('mongodb://127.0.0.1:3002/meteor')
-      
-      puma = JSON.parse(fs.readFileSync("middleclass/public/svg/5percent-combined.geojson"))
-      console.log "puma = #{(f.properties.PUMA5 for f in puma.features).length}"
-      extras.doMakeMap('body',puma)
-
-      result = common.getGroup(conn,25,60)
-      console.log "painting"
-      extras.doPaintMap(result,puma)
-      console.log "done painting"
-
+    conn = common.dbconnect('mongodb://127.0.0.1:3002/meteor')
+    maps = [
+      #[25,100,null,null],
+      #[25,100,10,null],
+      #[25,100,30,9],
+      #[25,100,30,13],
+      #[25,100,50,9],
+      #[25,100,50,13],
+      [25,100,70,9]
+      #[25,100,70,13]
+    ]
+    # use the big one for the final viz
+    puma = JSON.parse(fs.readFileSync("middleclass/public/svg/5percent-huge.geojson"))
+    #puma = JSON.parse(fs.readFileSync("middleclass/public/svg/5percent-combined.geojson"))
+    for m in maps
+      console.log "rendering #{m}"
+      d3.select('#maptemplate').remove()
+      d3.select('body').append('div').attr('id','maptemplate')
+      extras.doMakeMap('#maptemplate',puma)
+      result = common.getGroup(conn,m[0],m[1],m[2],m[3])
+      extras.doPaintMap(result,puma,d3.select('#maptemplate'))
       html = d3.select("svg")
         .attr("title", "Map Rendering")
         .attr("version", 1.1)
         .attr("xmlns", "http://www.w3.org/2000/svg")
         .attr("xmlns:xlink", "http://www.w3.org/1999/xlink")
-        #<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xml:space="preserve" xmlns:xml="http://www.w3.org/XML/1998/namespace" width="400" height="150" viewBox="0 0 400 150">
         .node().parentNode.innerHTML
-      fs.writeFile("out.svg",html)
-      console.log "done writing"
-      conn.db.disconnect()
-    catch e
-      console.log "error #{e}"
+      fs.writeFile("map-#{m[0]}-#{m[1]}-#{m[2]}-#{m[3]}.svg",html)
+    conn.db.disconnect()
   ).run()
+
+task 'makedetailmap', 'render my map to a file.', ->
+  require 'd3/index.js'
+
+
+  svg = d3.select('body').append('svg')
+    .style('fill', 'white')
+    .style('stroke', 'black')
+  svg.selectAll('g')
+    .data([
+      [285,175,'Salt Lake City','map.svg']
+    ])
+    .enter()
+    .append('g')
+    .html((d) -> fs.readFileSync(d[3],"utf8"))
+    .call( (d) ->
+      svg = d.select('svg')
+      svg.attr('width',''+ 35*4)
+        .attr('height',''+ 35*4)
+      defs = svg.select('defs')
+      scale = 5
+      defs.append('svg:clipPath')
+        .attr('id','firstbox')
+        .append('rect')
+        .attr('id','firstbox-box')
+        .attr('x',0)
+        .attr('y',0)
+        .attr('width',35)
+        .attr('height',35)
+        .style('fill','none')
+      d.style('clip-path','url(#firstbox)')
+        .attr('transform', 'scale(5) translate(285,175)')
+        .append('use')
+        .attr('xlink:href','#firstbox-box')
+    )
+    ###
+    [370,202,'Denver','map.svg'],
+    [268,303,'Pheonix','map.svg']
+    [510,216,'Kansas City'],
+    [178,275,'Los Angeles'],
+    [143,203,'San Francisco'],
+    [180,30,'Seattle'],
+    [480,325,'Dallas'],
+    [505,378,'Houston'],
+    [524,114,'Minneapolis'],
+    [586,140,'Milwaukee'],
+    [593,160,'Chicago'],
+    [565,220,'St. Louis'],
+    [649,142,'Detroit'],
+    [656,194,'Columbus'],
+    [620,261,'Nashville'],
+    [658,293,'Atlanta'],
+    [715,385,'Orlando'],
+    [737,418,'Miami'],
+    [712,257,'Charlotte'],
+    [746,189,'Washington DC'],
+    [777,150,'New York',6],
+    [804,110,'Boston']
+    ###
+
+  html = d3.select("svg")
+    .attr("title", "Map Rendering")
+    .attr("version", 1.1)
+    .attr("xmlns", "http://www.w3.org/2000/svg")
+    .attr("xmlns:xlink", "http://www.w3.org/1999/xlink")
+    .node().parentNode.innerHTML
+  fs.writeFile("out.svg",html)
+  console.log "done writing"
