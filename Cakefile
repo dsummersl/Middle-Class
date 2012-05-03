@@ -2,7 +2,8 @@ fs = require 'fs'
 exec = require('child_process').exec
 spawn = require('child_process').spawn
 mongoose = require('mongoose')
-common = require('./middleclass/server/common')
+server = require('./middleclass/server/common')
+common = require('./middleclass/common')
 extras = require('./middleclass/client/extras')
 require('fibers')
 
@@ -68,7 +69,7 @@ task 'cookCSV', 'take the raw CSV and turn it into cooked down CSV suitable for 
     # I don't need to include these other columns b/c they are all wrapped up into the PINCP values
     adj = d.ADJINC / 1000000
     total = d.PINCP*adj
-    key = "#{d.ST},#{d.PUMA},#{d.SEX},#{common.breakout(d.AGEP,common.ageMarkers)},#{d.SCHL},#{common.breakout(total,common.moneyMarkers)}"
+    key = "#{d.ST},#{d.PUMA},#{d.SEX},#{common.round(d.AGEP,server.ageMarkers)},#{d.SCHL},#{common.round(total,server.moneyMarkers)}"
     cooked[key] = 0 if not cooked[key]
     cooked[key] += 1
     cnt++
@@ -78,7 +79,7 @@ task 'cookCSV', 'take the raw CSV and turn it into cooked down CSV suitable for 
       console.log "#{k},#{v}"
 
 task 'manualprocess', 'given a csv file, manually convert it to CSV and import it to mongo.', (options) ->
-  conn = common.dbconnect('mongodb://127.0.0.1:3002/meteor')
+  conn = server.dbconnect('mongodb://127.0.0.1:3002/meteor')
   importCSV(conn,options.param, ->
     conn.db.disconnect()
   )
@@ -94,10 +95,10 @@ task 'manualprocess', 'given a csv file, manually convert it to CSV and import i
 task 'buildGroups', 'Once the dbs are built, use this command to build extra caches', ->
   Fiber( () ->
     console.log "starting"
-    conn = common.dbconnect('mongodb://127.0.0.1:3002/meteor')
-    for l in common.moneyMarkers
-      for m in common.moneyMarkers when m > l
-        result = common.getGroup(conn,l/1000,m/1000,null)
+    conn = server.dbconnect('mongodb://127.0.0.1:3002/meteor')
+    for l in server.moneyMarkers
+      for m in server.moneyMarkers when m > l
+        result = server.getGroup(conn,l/1000,m/1000,null)
         lCnt = 0
         mCnt = 0
         uCnt = 0
@@ -116,7 +117,7 @@ task 'buildGroups', 'Once the dbs are built, use this command to build extra cac
   ).run()
 
 task 'processdata', 'move the census data into mongodb (data should be in /Volumes/My Book/data external drive)', (options) ->
-  conn = common.dbconnect('mongodb://127.0.0.1:3002/meteor')
+  conn = server.dbconnect('mongodb://127.0.0.1:3002/meteor')
   dir = '/Volumes/My Book/data/'
   fs.readdir dir, (err,list) =>
     fn = (listIndex,done) =>
@@ -176,7 +177,7 @@ task 'makecitymaps', 'render all map SVGs used to make final viz.', ->
   require 'd3/index.js'
 
   Fiber( () ->
-    conn = common.dbconnect('mongodb://127.0.0.1:3002/meteor')
+    conn = server.dbconnect('mongodb://127.0.0.1:3002/meteor')
     maps = [
       #[25,100,null,null],
       #[25,100,10,null],
@@ -195,7 +196,7 @@ task 'makecitymaps', 'render all map SVGs used to make final viz.', ->
       d3.select('#maptemplate').remove()
       d3.select('body').append('div').attr('id','maptemplate')
       extras.doMakeMap('#maptemplate',puma)
-      result = common.getGroup(conn,m[0],m[1],m[2],m[3])
+      result = server.getGroup(conn,m[0],m[1],m[2],m[3])
       extras.doPaintMap(result,puma,d3.select('#maptemplate'))
       html = d3.select("svg")
         .attr("title", "Map Rendering")
@@ -208,6 +209,11 @@ task 'makecitymaps', 'render all map SVGs used to make final viz.', ->
       fs.writeFile("map-#{m[0]}-#{m[1]}-#{m[2]}-#{m[3]}.svg",html)
     conn.db.disconnect()
   ).run()
+
+task 'xx', '', ->
+  percentBreakouts = server.moneyMarkers
+  console.log "breakouts = #{percentBreakouts}"
+  console.log "#{i*1000}: #{common.round(i*1000,percentBreakouts)}" for i in [0..100]
 
 task 'makedetailmap', 'render my map to a file - use -param to specify the svg map', (options) ->
   require 'd3/index.js'

@@ -30,87 +30,49 @@ ContextWatcher = (method) ->
       ctx.run method
     contextrecaller()
 
-# Given an integer v and an array of integers, find the smallest integer in the
-# array that is larger than v.
-breakout = (v,markers) ->
-  bucket = 0
-  bucket = a for a in markers when a >= v and bucket == 0
-  return bucket
-
 percentBreakouts = (a*0.1 for a in [0..9])
 percentBreakouts.push(1)
 
 makeMap = (callback) ->
   d3.json 'svg/5percent-combined.geojson', (json) ->
-    d3.xml 'tophat.svg', 'image/svg+xml', (rich) ->
-      doMakeMap('#map',json,rich,callback)
+    doMakeMap('#map',json,callback)
 
 # given a map (json), put it on the target.
 # 'rich' is the rich pattern SVG assumed to be about 100x100
-doMakeMap = (target,json,rich,callback) ->
+doMakeMap = (target,json,callback) ->
   Session?.set('map',json)
-  richObj = d3.select(document.importNode(rich.documentElement,true)).select('path').attr('d')
   path = d3.geo.path()
   svg = d3.select(target).append('svg')
   defs = svg.append('defs')
   mainG = svg.append('g')
-    .attr('id','mapparts')
-  # width: each circle is radius 5, and I want to show 3 whole ones on the top layer
-  # width = 3 * 5 + .5 + 1 + 1 + .5 = 15 + 3 = 18
-  # height: two rows, no space between the rows:
-  # height = 2 * 5 + 1 = 11
+    .attr('class','mapparts')
   for pb,i in percentBreakouts
     r = 1+pb*3
     #console.log "pb = #{pb}"
     patternArea = (d) ->
       d.attr('patternUnits', 'userSpaceOnUse')
-      .attr('x',0)
-      .attr('y',0)
-      .attr('width',18)
-      .attr('height',11)
-      .attr('viewBox','0 0 18 11')
-    p = defs.append('pattern')
-      .attr('id', "lowerpattern-#{pb}")
-      .call(patternArea)
-    p.append('circle')
-      .attr('cx',3)
-      .attr('cy',3)
-      .attr('r', r)
-      .attr('fill', d3.rgb('white'))
-    p.append('circle')
-      .attr('cx',11.5)
-      .attr('cy',8)
-      .attr('r', r)
-      .attr('fill', d3.rgb('white'))
+      .attr('x','0')
+      .attr('y','0')
+      .attr('width','5')
+      .attr('height','5')
+      .attr('viewBox','0 0 10 10')
+
     p = defs.append('pattern')
       .attr('id', "middlepattern-#{pb}")
       .call(patternArea)
-    p.append('circle')
-      .attr('cx',9)
-      .attr('cy',3)
-      .attr('r', r)
-      .attr('fill', d3.rgb('blue').brighter())
-    p.append('circle')
-      .attr('cx',0)
-      .attr('cy',8)
-      .attr('r', r)
-      .attr('fill', d3.rgb('blue').brighter())
-    p.append('circle')
-      .attr('cx',18)
-      .attr('cy',8)
-      .attr('r', r)
-      .attr('fill', d3.rgb('blue').brighter())
+      .append('g')
+      .attr('transform',(d) -> "rotate(#{-parseInt(pb*90)} 5 5)")
+    p.selectAll('line').data([0..5]).enter().append('line')
+      .attr('x1','2.5')
+      .attr('y1',(d)->"#{d*2}")
+      .attr('x2','7.5')
+      .attr('y2',(d)->"#{d*2}")
+      .attr('stroke-width', "#{pb}")
+      .attr('stroke', d3.rgb('blue').brighter())
+
     p = defs.append('pattern')
       .attr('id', "upperpattern-#{pb}")
       .call(patternArea)
-    p.append('path')
-      .attr('transform', "scale(#{0.06*pb}) translate(#{15/0.06/pb},#{3/0.06/pb})")
-      .attr('fill', d3.rgb('red').brighter().brighter())
-      .attr('d', richObj)
-    p.append('path')
-      .attr('transform', "scale(#{0.06*pb}) translate(#{6/0.06/pb},#{8/0.06/pb})")
-      .attr('fill', d3.rgb('red').brighter().brighter())
-      .attr('d', richObj)
   parts = mainG.selectAll('.part')
     .data(json.features, (d) -> "#{d.properties.State}-#{d.properties.PUMA5}-#{d.properties.PERIMETER}")
   parts.enter()
@@ -158,7 +120,7 @@ paintMap = ->
     )
 
 # a non-meteor method that updates the map.
-doPaintMap = (result,map) ->
+doPaintMap = (result,map,svg=null) ->
   features = []
   minSPA = 0
   maxSPA = 0
@@ -174,30 +136,36 @@ doPaintMap = (result,map) ->
       maxSPA = d.properties.samplesPerArea if maxSPA == 0 or maxSPA < d.properties.samplesPerArea
       #console.log "samples per area? #{result[k].total} / #{d.properties.AREA} = #{result[k].total / d.properties.AREA}"
 
-  om = d3.scale.sqrt().domain([minSPA,maxSPA]).range([0,1])
+  om = d3.scale.linear().domain([minSPA,maxSPA]).range([0,1])
   densityopacitymap = (d) -> om(d) + 0.3
   #console.log "working with #{minSPA} and #{maxSPA}: #{densityopacitymap(minSPA)} and #{densityopacitymap(maxSPA)}"
-  d = d3.selectAll(".lower")
-    .data(features, (d) -> "#{d.properties.State}-#{d.properties.PUMA5}-#{d.properties.PERIMETER}")
-    #.attr('opacity', (d) -> densityopacitymap(d.properties.samplesPerArea) )
-  d = d3.selectAll(".middle")
+
+  # http://en.wikipedia.org/wiki/Navajo_white
+  # ...it does not easily show stains from cigarette smoke or fingerprints...
+  lowcolors = d3.scale.linear().domain([0,1]).range([d3.hsl(36,1,1),d3.hsl(36,0.5,0.5)])
+  svg = d3.select('svg') if not svg?
+  d = svg.selectAll(".lower")
     .data(features, (d) -> "#{d.properties.State}-#{d.properties.PUMA5}-#{d.properties.PERIMETER}")
   d.exit().remove()
   d.attr('fill', (d) ->
       k = "#{d.properties.State}-#{d.properties.PUMA5}"
-      val = breakout(result[k].middle / result[k].total,percentBreakouts)
+      val = round(result[k].lower / result[k].total,percentBreakouts)
+      lowcolors(val)
+    )
+ 
+  d = svg.selectAll(".middle")
+    .data(features, (d) -> "#{d.properties.State}-#{d.properties.PUMA5}-#{d.properties.PERIMETER}")
+  d.exit().remove()
+  d.attr('fill', (d) ->
+      k = "#{d.properties.State}-#{d.properties.PUMA5}"
+      val = round(result[k].middle / result[k].total,percentBreakouts)
       "url(#middlepattern-#{val})"
     )
-    #.attr('opacity', (d) -> densityopacitymap(d.properties.samplesPerArea) )
-  d = d3.selectAll(".upper")
+
+  d = svg.selectAll(".upper")
     .data(features, (d) -> "#{d.properties.State}-#{d.properties.PUMA5}-#{d.properties.PERIMETER}")
   d.exit().remove()
-  d.attr('fill', (d) ->
-      k = "#{d.properties.State}-#{d.properties.PUMA5}"
-      val = breakout(result[k].upper / result[k].total,percentBreakouts)
-      "url(#upperpattern-#{val})"
-    )
-    #.attr('opacity', (d) -> densityopacitymap(d.properties.samplesPerArea) )
+  d.attr('opacity', '0')
 
 # hack for cakefile to read this as an npm module...
 module?.exports =

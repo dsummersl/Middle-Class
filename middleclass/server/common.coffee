@@ -27,17 +27,11 @@ dbconnect = (dburl=__meteor_bootstrap__?.mongo_url)->
   Grouped = mongoose.model('Grouped', GroupedSchema)
   return {db: db,Entry: Entry,Grouped: Grouped}
 
-# Given an integer v and an array of integers, find the smallest integer in the
-# array that is larger than v.
-breakout = (v,markers) ->
-  bucket = 0
-  bucket = a for a in markers when a >= v and bucket == 0
-  return bucket
-
 ageMarkers = [17,24,30,34,39,49,59,150]
 schoolMarkers = [9, 11, 12, 13, 14, 16]
-moneyMarkers = (x*5000 for x in [1..20])
+moneyMarkers = (x*5000 for x in [0..20])
 moneyMarkers.push(100000000) # infinity
+console.log "moneyMarkers = #{moneyMarkers}"
 
 ###
 # bb .N/A (less than 3 years old)
@@ -62,9 +56,11 @@ moneyMarkers.push(100000000) # infinity
 getGroup = (conn,lowmarker,middlemarker,age=null,school=null) ->
   # https://github.com/laverdet/node-fibers
   Future = require('fibers/future')
-  lowmarker = breakout(lowmarker*1000,moneyMarkers)
-  middlemarker = breakout(middlemarker*1000,moneyMarkers)
-  age = breakout(age,ageMarkers) if age?
+  console.log "low marker = #{lowmarker}"
+  console.log "middle marker = #{middlemarker}"
+  lowmarker = round(lowmarker*1000,moneyMarkers)
+  middlemarker = round(middlemarker*1000,moneyMarkers)
+  age = round(age,ageMarkers) if age?
   console.log "group search #{lowmarker} and #{middlemarker}, age #{age}, school #{school}"
   # first see if there are any entries already
   cnd = {}
@@ -125,4 +121,3 @@ module?.exports =
   ageMarkers: ageMarkers
   moneyMarkers: moneyMarkers
   getGroup: getGroup
-  breakout: breakout
