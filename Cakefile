@@ -6,6 +6,7 @@ common = require('./middleclass/server/common')
 extras = require('./middleclass/client/extras')
 require('fibers')
 
+# Support functions {{{
 execHandler = (error,stdout,stderr) ->
   console.log stdout
   console.log stderr
@@ -42,6 +43,7 @@ importCSV = (conn,file,callback) ->
           console.log "DONE #{processed}/#{cnt}"
           callback()
     reader.addListener 'end', () => alldone = true
+# }}}
 
 option '-p','--param [EXTRA]', 'Extra Param - see task'
 
@@ -205,16 +207,17 @@ task 'makecitymaps', 'render all map SVGs used to make final viz.', ->
     conn.db.disconnect()
   ).run()
 
-task 'makedetailmap', 'render my map to a file.', ->
+task 'makedetailmap', 'render my map to a file - use -param to specify the svg map', (options) ->
   require 'd3/index.js'
 
+  if not options.param?
+    console.log "You need to specify a map file with -param"
+    return
 
   svg = d3.select('body').append('svg')
-    .style('fill', 'white')
-    .style('stroke', 'black')
   svg.selectAll('g')
     .data([
-      [285,175,'Salt Lake City','map.svg']
+      [285,175,'Salt Lake City',options.param]
     ])
     .enter()
     .append('g')
@@ -229,13 +232,14 @@ task 'makedetailmap', 'render my map to a file.', ->
         .attr('id','firstbox')
         .append('rect')
         .attr('id','firstbox-box')
-        .attr('x',0)
-        .attr('y',0)
+        .attr('x',804)
+        .attr('y',110)
         .attr('width',35)
         .attr('height',35)
         .style('fill','none')
-      d.style('clip-path','url(#firstbox)')
-        .attr('transform', 'scale(5) translate(285,175)')
+      svg.select('g')
+        .style('clip-path','url(#firstbox)')
+        .attr('transform', 'scale(5) translate(-802,-108)')
         .append('use')
         .attr('xlink:href','#firstbox-box')
     )
@@ -264,7 +268,7 @@ task 'makedetailmap', 'render my map to a file.', ->
     [804,110,'Boston']
     ###
 
-  html = d3.select("svg")
+  html = d3.select("svg svg")
     .attr("title", "Map Rendering")
     .attr("version", 1.1)
     .attr("xmlns", "http://www.w3.org/2000/svg")
@@ -272,3 +276,5 @@ task 'makedetailmap', 'render my map to a file.', ->
     .node().parentNode.innerHTML
   fs.writeFile("out.svg",html)
   console.log "done writing"
+
+# vim: set fdm=marker:
