@@ -1,3 +1,7 @@
+try
+  round = require('../common').round
+catch e
+  console.log "no require"
 
 dbconnect = (dburl=__meteor_bootstrap__?.mongo_url)->
   #db = mongoose.connect('mongodb://localhost/middleclass')
@@ -56,8 +60,6 @@ console.log "moneyMarkers = #{moneyMarkers}"
 getGroup = (conn,lowmarker,middlemarker,age=null,school=null) ->
   # https://github.com/laverdet/node-fibers
   Future = require('fibers/future')
-  console.log "low marker = #{lowmarker}"
-  console.log "middle marker = #{middlemarker}"
   lowmarker = round(lowmarker*1000,moneyMarkers)
   middlemarker = round(middlemarker*1000,moneyMarkers)
   age = round(age,ageMarkers) if age?

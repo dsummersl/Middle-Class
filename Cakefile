@@ -210,11 +210,6 @@ task 'makecitymaps', 'render all map SVGs used to make final viz.', ->
     conn.db.disconnect()
   ).run()
 
-task 'xx', '', ->
-  percentBreakouts = server.moneyMarkers
-  console.log "breakouts = #{percentBreakouts}"
-  console.log "#{i*1000}: #{common.round(i*1000,percentBreakouts)}" for i in [0..100]
-
 task 'makedetailmap', 'render my map to a file - use -param to specify the svg map', (options) ->
   require 'd3/index.js'
   # TODO look into d3.touches -- sounds like an intersection?

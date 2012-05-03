@@ -1,5 +1,4 @@
-# Given an integer v and an array of integers, find the smallest integer in the
-# array that is larger than v.
+# Given an integer v and an array of integers, round to the nearest value listed in the 'markers' array
 round = (v,markers) ->
   bucket = null
   previous = markers[0]

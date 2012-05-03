@@ -1,3 +1,8 @@
+try
+  round = require('../common').round
+catch e
+  console.log "no require"
+
 # This class will manage the visibility of a specific item. You specify
 # the timeout and the item, and it will ensure that if the mouse moves
 # a button is visible for at least X ms. Once its visible as long
@@ -46,33 +51,40 @@ doMakeMap = (target,json,callback) ->
   defs = svg.append('defs')
   mainG = svg.append('g')
     .attr('class','mapparts')
-  for pb,i in percentBreakouts
-    r = 1+pb*3
-    #console.log "pb = #{pb}"
-    patternArea = (d) ->
-      d.attr('patternUnits', 'userSpaceOnUse')
-      .attr('x','0')
-      .attr('y','0')
-      .attr('width','5')
-      .attr('height','5')
-      .attr('viewBox','0 0 10 10')
+  for density in percentBreakouts
+    for pb in percentBreakouts
+      patternArea = (d) ->
+        d.attr('patternUnits', 'userSpaceOnUse')
+        .attr('x','0')
+        .attr('y','0')
+        .attr('width', "#{density*9.9 + 0.1}")
+        .attr('height',"#{density*9.9 + 0.1}")
+        .attr('viewBox','0 0 10 10')
 
-    p = defs.append('pattern')
-      .attr('id', "middlepattern-#{pb}")
-      .call(patternArea)
-      .append('g')
-      .attr('transform',(d) -> "rotate(#{-parseInt(pb*90)} 5 5)")
-    p.selectAll('line').data([0..5]).enter().append('line')
-      .attr('x1','2.5')
-      .attr('y1',(d)->"#{d*2}")
-      .attr('x2','7.5')
-      .attr('y2',(d)->"#{d*2}")
-      .attr('stroke-width', "#{pb}")
-      .attr('stroke', d3.rgb('blue').brighter())
+      p = defs.append('pattern')
+        .attr('id', "middlepattern-#{pb}-#{density}")
+        .call(patternArea)
+        .append('g')
+        #.attr('transform',(d) -> "rotate(#{-parseInt(pb*90)} 5 5)")
+      p.selectAll('line').data([0..4]).enter().append('line')
+        .attr('x1','0')
+        .attr('y1',(d)->"#{d*2}") # 0, 2, 4, 8
+        .attr('x2','10')
+        .attr('y2',(d)->"#{d*2}")
+        .attr('stroke-width', "#{pb*2.1}")
+        .attr('stroke', d3.rgb('blue').brighter())
 
-    p = defs.append('pattern')
-      .attr('id', "upperpattern-#{pb}")
-      .call(patternArea)
+      p = defs.append('pattern')
+        .attr('id', "upperpattern-#{pb}-#{density}")
+        .call(patternArea)
+        .append('g')
+      p.selectAll('line').data([0..4]).enter().append('line')
+        .attr('x1','0')
+        .attr('y1',(d)->"#{d*2+1}") # 1 3 5 9
+        .attr('x2','10')
+        .attr('y2',(d)->"#{d*2+1}")
+        .attr('stroke-width', "#{pb*2.1}")
+        .attr('stroke', d3.rgb('red').brighter())
   parts = mainG.selectAll('.part')
     .data(json.features, (d) -> "#{d.properties.State}-#{d.properties.PUMA5}-#{d.properties.PERIMETER}")
   parts.enter()
@@ -131,14 +143,12 @@ doPaintMap = (result,map,svg=null) ->
       result[k].total = result[k].lower + result[k].middle + result[k].upper
       d.properties.AREA = 0.01 if d.properties.AREA < 0.01
       # from 500 to 2 million, lets change the pattern circle radius depending on this density.
-      d.properties.samplesPerArea = result[k].total
+      d.properties.samplesPerArea = d.properties.AREA / result[k].total
       minSPA = d.properties.samplesPerArea if minSPA == 0 or minSPA > d.properties.samplesPerArea
       maxSPA = d.properties.samplesPerArea if maxSPA == 0 or maxSPA < d.properties.samplesPerArea
       #console.log "samples per area? #{result[k].total} / #{d.properties.AREA} = #{result[k].total / d.properties.AREA}"
 
-  om = d3.scale.linear().domain([minSPA,maxSPA]).range([0,1])
-  densityopacitymap = (d) -> om(d) + 0.3
-  #console.log "working with #{minSPA} and #{maxSPA}: #{densityopacitymap(minSPA)} and #{densityopacitymap(maxSPA)}"
+  om = d3.scale.log().domain([minSPA,maxSPA]).range([0,1])
 
   # http://en.wikipedia.org/wiki/Navajo_white
   # ...it does not easily show stains from cigarette smoke or fingerprints...
@@ -159,13 +169,19 @@ doPaintMap = (result,map,svg=null) ->
   d.attr('fill', (d) ->
       k = "#{d.properties.State}-#{d.properties.PUMA5}"
       val = round(result[k].middle / result[k].total,percentBreakouts)
-      "url(#middlepattern-#{val})"
+      den = round(om(d.properties.samplesPerArea),percentBreakouts)
+      "url(#middlepattern-#{val}-#{den})"
     )
 
   d = svg.selectAll(".upper")
     .data(features, (d) -> "#{d.properties.State}-#{d.properties.PUMA5}-#{d.properties.PERIMETER}")
   d.exit().remove()
-  d.attr('opacity', '0')
+  d.attr('fill', (d) ->
+      k = "#{d.properties.State}-#{d.properties.PUMA5}"
+      val = round(result[k].upper / result[k].total,percentBreakouts)
+      den = round(om(d.properties.samplesPerArea),percentBreakouts)
+      "url(#upperpattern-#{val}-#{den})"
+    )
 
 # hack for cakefile to read this as an npm module...
 module?.exports =
