@@ -214,32 +214,36 @@ task 'makedetailmap', 'render my map to a file - use -param to specify the svg m
     console.log "You need to specify a map file with -param"
     return
 
+  mainmap = fs.readFileSync(options.param,"utf8")
   svg = d3.select('body').append('svg')
   svg.selectAll('g')
     .data([
-      [285,175,'Salt Lake City',options.param]
+      [10,10,804,110,'Boston']
+      [20+35*4,10,746,189,'Washington DC']
     ])
     .enter()
     .append('g')
-    .html((d) -> fs.readFileSync(d[3],"utf8"))
+    .html(mainmap)
     .call( (d) ->
-      svg = d.select('svg')
-      svg.attr('width',''+ 35*4)
-        .attr('height',''+ 35*4)
-      defs = svg.select('defs')
       scale = 5
-      defs.append('svg:clipPath')
+      svg = d.select('svg')
+        .attr('x', (d) -> d[0])
+        .attr('y', (d) -> d[1])
+        .attr('width',''+ 35*4)
+        .attr('height',''+ 35*4)
+      svg.select('defs')
+        .append('svg:clipPath')
         .attr('id','firstbox')
         .append('rect')
         .attr('id','firstbox-box')
-        .attr('x',804)
-        .attr('y',110)
+        .attr('x',0)
+        .attr('y',0)
         .attr('width',35)
         .attr('height',35)
         .style('fill','none')
       svg.select('g')
         .style('clip-path','url(#firstbox)')
-        .attr('transform', 'scale(5) translate(-802,-108)')
+        .attr('transform', (d) -> "scale(#{scale}) translate(#{ 10 / scale - d[2]},#{ 10 / scale - d[3]})")
         .append('use')
         .attr('xlink:href','#firstbox-box')
     )
@@ -268,7 +272,7 @@ task 'makedetailmap', 'render my map to a file - use -param to specify the svg m
     [804,110,'Boston']
     ###
 
-  html = d3.select("svg svg")
+  html = d3.select("svg")
     .attr("title", "Map Rendering")
     .attr("version", 1.1)
     .attr("xmlns", "http://www.w3.org/2000/svg")
