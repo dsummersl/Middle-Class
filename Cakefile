@@ -14,7 +14,8 @@ execHandler = (error,stdout,stderr) ->
   #console.log error if error != null
 
 importCSV = (conn,file,callback) ->
-  cmd = "rm out.csv ; time cake -p '#{file}' cookCSV > out.csv"
+  #cmd = "rm out.csv ; time cake -p '#{file}' cookCSV > out.csv"
+  cmd = "ls"
   console.log "invoking command: '#{cmd}'"
   exec cmd, (error,stdout,stderr) ->
     console.log "Generated #{file}, importing into db..."
@@ -26,24 +27,64 @@ importCSV = (conn,file,callback) ->
     alldone = false
     reader.addListener 'data', (data)=>
       console.log "saving #{processed}/#{cnt}" if cnt % 1000 == 0
-      # TODO don't remove those that have been split up:
-      conn.Entry.collection.remove({ state: parseInt(data.State) }) if cnt == 0
+      # TODO not an elegant way to get the state info, then delete, then process these CSVs
+      # It causes errors on saves b/c I suspect its tryign to delete at the same time:
+      # I guess I'd have to use Future to get by this:
+      #conn.Entry.collection.remove({ state: parseInt(data.State) }) if cnt == 0
+      #conn.Grouped.collection.remove({ state: parseInt(data.State) }) if cnt == 0
       entry = new conn.Entry
         puma: data.PUMA
-        state: data.State
+        state: parseInt(data.State)
         sex: (data.Sex == "1")
-        age: data.Age
-        school: data.School
-        income: data.Income
+        age: parseInt(data.Age)
+        school: parseInt(data.School)
+        income: parseInt(data.Income)
         incomecount: parseInt(data.IncomeCount)
       cnt++
       entry.save (err) ->
-        console.log "Error saving: #{JSON.stringify(data)}" if err
-        processed++
-        if processed == cnt and alldone
-          console.log "DONE #{processed}/#{cnt}"
-          callback()
+        if err
+          console.log err.name
+          console.log err.type
+          console.log err.message
+          console.log "data: #{JSON.stringify(entry)}"
+          console.log " puma = #{data.PUMA}"
+          console.log " state = #{parseInt(data.State)}"
+          console.log " sex: #{(data.Sex == "1")}"
+          console.log " age: #{parseInt(data.Age)} age = #{data.Age}"
+          console.log " school: #{parseInt(data.School)}"
+          console.log " income: #{parseInt(data.Income)}"
+          console.log " incomecount: #{parseInt(data.IncomeCount)}"
+        else
+          processed++
+          if processed == cnt and alldone
+            console.log "DONE #{processed}/#{cnt}"
+            callback(parseInt(data.State))
     reader.addListener 'end', () => alldone = true
+
+generateGroups = (state=null) ->
+  Fiber( () ->
+    conn = server.dbconnect('mongodb://127.0.0.1:3002/meteor')
+    for l in server.moneyMarkers
+      for m in server.moneyMarkers when m > l
+        result = server.getGroup(conn,l/1000,m/1000) if state == null
+        result = server.getGroup(conn,l/1000,m/1000,null,null,state) if state != null
+        lCnt = 0
+        mCnt = 0
+        uCnt = 0
+        lSum = 0
+        mSum = 0
+        uSum = 0
+        for k,v of result
+          lCnt += v.lower
+          mCnt += v.middle
+          uCnt += v.upper
+          lSum += v.lAmount
+          mSum += v.mAmount
+          uSum += v.uAmount
+        console.log "#{l}-#{m}: #{lCnt},#{mCnt},#{uCnt}  #{lSum},#{mSum},#{uSum} #{lSum/lCnt},#{mSum/mCnt},#{uSum/uCnt}"
+    conn.db.disconnect()
+  ).run()
+
 # }}}
 
 option '-p','--param [EXTRA]', 'Extra Param - see task'
@@ -69,6 +110,7 @@ task 'cookCSV', 'take the raw CSV and turn it into cooked down CSV suitable for 
     # I don't need to include these other columns b/c they are all wrapped up into the PINCP values
     adj = d.ADJINC / 1000000
     total = d.PINCP*adj
+    d.SCHL = 0 if d.SCHL == ''
     key = "#{d.ST},#{d.PUMA},#{d.SEX},#{common.round(d.AGEP,server.ageMarkers)},#{d.SCHL},#{common.round(total,server.moneyMarkers)}"
     cooked[key] = 0 if not cooked[key]
     cooked[key] += 1
@@ -80,9 +122,14 @@ task 'cookCSV', 'take the raw CSV and turn it into cooked down CSV suitable for 
 
 task 'manualprocess', 'given a csv file, manually convert it to CSV and import it to mongo.', (options) ->
   conn = server.dbconnect('mongodb://127.0.0.1:3002/meteor')
-  importCSV(conn,options.param, ->
+  importCSV(conn,options.param, (state) ->
     conn.db.disconnect()
+    generateGroups(state)
   )
+
+task 'x','', ->
+  console.log "parse int #{parseInt("00")}"
+  console.log common.round(parseInt("0"),server.ageMarkers)
 
 # mongodump --host 127.0.0.1:3002 -d meteor
 # tar zcvf dump.tgz dump
@@ -92,29 +139,9 @@ task 'manualprocess', 'given a csv file, manually convert it to CSV and import i
 # tar zxvf lib/dump.tgz
 # mongorestore --host localhost:3002 dump
 
-task 'buildGroups', 'Once the dbs are built, use this command to build extra caches', ->
-  Fiber( () ->
-    console.log "starting"
-    conn = server.dbconnect('mongodb://127.0.0.1:3002/meteor')
-    for l in server.moneyMarkers
-      for m in server.moneyMarkers when m > l
-        result = server.getGroup(conn,l/1000,m/1000,null)
-        lCnt = 0
-        mCnt = 0
-        uCnt = 0
-        lSum = 0
-        mSum = 0
-        uSum = 0
-        for k,v of result
-          lCnt += v.lower
-          mCnt += v.middle
-          uCnt += v.upper
-          lSum += v.lAmount
-          mSum += v.mAmount
-          uSum += v.uAmount
-        console.log "#{l}-#{m}: #{lCnt},#{mCnt},#{uCnt}  #{lSum},#{mSum},#{uSum} #{lSum/lCnt},#{mSum/mCnt},#{uSum/uCnt}"
-    conn.db.disconnect()
-  ).run()
+task 'buildGroups', 'Once the dbs are built, use this command to build extra caches (param could be state code)', (options) ->
+  state = parseInt(options.param) if options.param?
+  generateGroups(state)
 
 task 'processdata', 'move the census data into mongodb (data should be in /Volumes/My Book/data external drive)', (options) ->
   conn = server.dbconnect('mongodb://127.0.0.1:3002/meteor')

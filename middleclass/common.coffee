@@ -7,6 +7,7 @@ round = (v,markers) ->
     bucket = previous if v >= previous and v < halfmark
     bucket = a if v <= a and v >= halfmark
     previous = a
+  return markers[0] if bucket == null
   return bucket
 
 

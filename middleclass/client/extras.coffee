@@ -107,8 +107,8 @@ doMakeMap = (target,json,pumatotals,callback) ->
       ls = Session.get('lastsearch')
       pumacounts = Session.get('pumacounts')
       k = "#{d.properties.State}-#{d.properties.PUMA5}"
-      #$('#hoverdetail').text("Lower: #{ls[k].lower} Middle: #{ls[k].middle} Upper: #{ls[k].upper}")
-      $('#hoverdetail').text("Lower: #{ls[k].lower} Middle: #{ls[k].middle} Upper: #{ls[k].upper} -- #{d.properties.samplesPerArea}")
+      #$('#hoverdetail').html("Lower: #{ls[k].lower}<br/>Middle: #{ls[k].middle}<br/>Upper: #{ls[k].upper}")
+      $('#hoverdetail').html("Lower: #{ls[k].lower}<br/>Middle: #{ls[k].middle}<br/>Upper: #{ls[k].upper}<br/>#{d.properties.samplesPerArea}")
     )
     .on('mouseout', (d) ->
       $('#hoverdetail').text("")
@@ -181,7 +181,7 @@ doPaintMap = (result,pumatotals,map,svg=null) ->
       val = round(result[k].lower / pumatotals[k].total,percentBreakouts)
       lowcolors(val)
     )
-  d.attr('opacity', (d) -> tots(pumatotals["#{d.properties.State}-#{d.properties.PUMA5}"].total))
+  #d.attr('opacity', (d) -> tots(pumatotals["#{d.properties.State}-#{d.properties.PUMA5}"].total))
  
   d = svg.selectAll(".middle")
     .data(features, (d) -> "#{d.properties.State}-#{d.properties.PUMA5}-#{d.properties.PERIMETER}")
@@ -192,7 +192,7 @@ doPaintMap = (result,pumatotals,map,svg=null) ->
       den = round(dens(d.properties.samplesPerArea),percentBreakouts)
       "url(#middlepattern-#{val}-#{den})"
     )
-  d.attr('opacity', (d) -> tots(pumatotals["#{d.properties.State}-#{d.properties.PUMA5}"].total))
+  #d.attr('opacity', (d) -> tots(pumatotals["#{d.properties.State}-#{d.properties.PUMA5}"].total))
 
   d = svg.selectAll(".upper")
     .data(features, (d) -> "#{d.properties.State}-#{d.properties.PUMA5}-#{d.properties.PERIMETER}")
@@ -203,7 +203,7 @@ doPaintMap = (result,pumatotals,map,svg=null) ->
       den = round(dens(d.properties.samplesPerArea),percentBreakouts)
       "url(#upperpattern-#{val}-#{den})"
     )
-  d.attr('opacity', (d) -> tots(pumatotals["#{d.properties.State}-#{d.properties.PUMA5}"].total))
+  #d.attr('opacity', (d) -> tots(pumatotals["#{d.properties.State}-#{d.properties.PUMA5}"].total))
 
 # hack for cakefile to read this as an npm module...
 module?.exports =

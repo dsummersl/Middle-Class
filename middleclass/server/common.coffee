@@ -56,22 +56,24 @@ moneyMarkers.push(100000000) # infinity
            16 .Doctorate degree
 ###
 
-getGroup = (conn,lowmarker,middlemarker,age=null,school=null) ->
+# If 'state' is presented, then generate the groups
+getGroup = (conn,lowmarker,middlemarker,age=null,school=null,state=null) ->
   # https://github.com/laverdet/node-fibers
   Future = require('fibers/future')
   lowmarker = round(lowmarker*1000,moneyMarkers)
   middlemarker = round(middlemarker*1000,moneyMarkers)
   age = round(age,ageMarkers) if age?
-  console.log "group search #{lowmarker} and #{middlemarker}, age #{age}, school #{school}"
+  console.log "group search #{lowmarker} and #{middlemarker}, age #{age}, school #{school}, state #{state}"
   # first see if there are any entries already
   cnd = {}
-  cnd = { age: parseInt(age) } if age?
-  cnd = { age: parseInt(age), school: parseInt(school) } if school?
+  cnd.state = parseInt(state) if state?
+  cnd.age = parseInt(age) if age?
+  cnd.school = parseInt(school) if school?
   groupedKey = "#{lowmarker}-#{middlemarker}-#{age}-#{school}"
   find = Future.wrap(conn.Grouped.find,1)
   docs = find.call(conn.Grouped,{ params: groupedKey }).wait()
   console.log "groups found: #{docs.length}"
-  if docs.length > 0
+  if docs.length > 0 and not state?
     done = {}
     done["#{i.state}-#{i.puma}"] = i for i in docs
     return done
