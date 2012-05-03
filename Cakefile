@@ -188,8 +188,8 @@ task 'makecitymaps', 'render all map SVGs used to make final viz.', ->
       #[25,100,70,13]
     ]
     # use the big one for the final viz
-    puma = JSON.parse(fs.readFileSync("middleclass/public/svg/5percent-huge.geojson"))
-    #puma = JSON.parse(fs.readFileSync("middleclass/public/svg/5percent-combined.geojson"))
+    #puma = JSON.parse(fs.readFileSync("middleclass/public/svg/5percent-huge.geojson"))
+    puma = JSON.parse(fs.readFileSync("middleclass/public/svg/5percent-combined.geojson"))
     for m in maps
       console.log "rendering #{m}"
       d3.select('#maptemplate').remove()
@@ -201,7 +201,9 @@ task 'makecitymaps', 'render all map SVGs used to make final viz.', ->
         .attr("title", "Map Rendering")
         .attr("version", 1.1)
         .attr("xmlns", "http://www.w3.org/2000/svg")
-        .attr("xmlns:xlink", "http://www.w3.org/1999/xlink")
+        .attr("xmlns:xmlns:xlink", "http://www.w3.org/1999/xlink")
+        #.attr('viewBox','0 0 500 300')
+        #.attr('preserveAspectRatio','xMinYMin')
         .node().parentNode.innerHTML
       fs.writeFile("map-#{m[0]}-#{m[1]}-#{m[2]}-#{m[3]}.svg",html)
     conn.db.disconnect()
@@ -209,74 +211,86 @@ task 'makecitymaps', 'render all map SVGs used to make final viz.', ->
 
 task 'makedetailmap', 'render my map to a file - use -param to specify the svg map', (options) ->
   require 'd3/index.js'
+  # TODO look into d3.touches -- sounds like an intersection?
 
   if not options.param?
     console.log "You need to specify a map file with -param"
     return
 
+  # magic factor numbers that get me to the viewport I want:
+  # 8.98  8.87
+  xF = 8.98
+  yF = 8.87
+  scale = 54
   mainmap = fs.readFileSync(options.param,"utf8")
   svg = d3.select('body').append('svg')
-  svg.selectAll('g')
-    .data([
-      [10,10,804,110,'Boston']
-      [20+35*4,10,746,189,'Washington DC']
-    ])
+  # 1258x476
+  svg.append('defs')
+    .html(mainmap)
+    .select('svg')
+    .attr('id','mainmap')
+    .attr('viewBox','0 0 1263 479')
+    .attr('preserveAspectRatio','xMinYMin meet')
+  ###
+  [-505/xF, -378/yF,'Houston']
+  [-524/xF, -114/yF,'Minneapolis']
+  [-586/xF, -140/yF,'Milwaukee']
+  [-593/xF, -160/yF,'Chicago']
+  [-565/xF, -220/yF,'St. Louis']
+  [-649/xF, -142/yF,'Detroit']
+  [-656/xF, -194/yF,'Columbus']
+  [-620/xF, -261/yF,'Nashville']
+  [-658/xF, -293/yF,'Atlanta']
+  [-715/xF, -385/yF,'Orlando']
+  [-737/xF, -418/yF,'Miami']
+  [-712/xF, -257/yF,'Charlotte']
+  [-746/xF, -189/yF,'Washington DC']
+  [-777/xF, -150/yF,'New York',6]
+  [-804/xF, -110/yF,'Boston']
+  ###
+  zoomins = [
+    [-804/xF, -110/yF,'Boston']
+    [-746/xF, -189/yF,'Washington DC']
+    [-370/xF, -202/yF,'Denver']
+    [-268/xF, -303/yF,'Phoenix']
+    [-510/xF, -216/yF,'Kansas City']
+    [-178/xF, -275/yF,'Los Angeles']
+    [-143/xF, -203/yF,'San Francisco']
+    [-180/xF,  -30/yF,'Seattle']
+    [-480/xF, -325/yF,'Dallas']
+  ]
+  svg.selectAll('.zoomish')
+    .data(zoomins)
     .enter()
     .append('g')
-    .html(mainmap)
-    .call( (d) ->
-      scale = 5
-      svg = d.select('svg')
-        .attr('x', (d) -> d[0])
-        .attr('y', (d) -> d[1])
-        .attr('width',''+ 35*4)
-        .attr('height',''+ 35*4)
-      svg.select('defs')
-        .append('svg:clipPath')
-        .attr('id','firstbox')
-        .append('rect')
-        .attr('id','firstbox-box')
-        .attr('x',0)
-        .attr('y',0)
-        .attr('width',35)
-        .attr('height',35)
-        .style('fill','none')
-      svg.select('g')
-        .style('clip-path','url(#firstbox)')
-        .attr('transform', (d) -> "scale(#{scale}) translate(#{ 10 / scale - d[2]},#{ 10 / scale - d[3]})")
-        .append('use')
-        .attr('xlink:href','#firstbox-box')
-    )
-    ###
-    [370,202,'Denver','map.svg'],
-    [268,303,'Pheonix','map.svg']
-    [510,216,'Kansas City'],
-    [178,275,'Los Angeles'],
-    [143,203,'San Francisco'],
-    [180,30,'Seattle'],
-    [480,325,'Dallas'],
-    [505,378,'Houston'],
-    [524,114,'Minneapolis'],
-    [586,140,'Milwaukee'],
-    [593,160,'Chicago'],
-    [565,220,'St. Louis'],
-    [649,142,'Detroit'],
-    [656,194,'Columbus'],
-    [620,261,'Nashville'],
-    [658,293,'Atlanta'],
-    [715,385,'Orlando'],
-    [737,418,'Miami'],
-    [712,257,'Charlotte'],
-    [746,189,'Washington DC'],
-    [777,150,'New York',6],
-    [804,110,'Boston']
-    ###
+    .attr('transform', (d,i) -> "translate(#{10+(i%3)*(10+35*4)},#{10+parseInt(i/3)*(10+35*4)})")
+    .append('svg')
+    .attr('width',35*4)
+    .attr('height',35*4)
+    .append('use')
+    .attr('transform', (d) ->  "scale(#{scale}) translate(#{d[0]},#{d[1]})")
+    .attr('xlink:xlink:href','#mainmap')
+  svg.selectAll('.bottomish')
+    .data([1])
+    .enter()
+    .append('g')
+    .attr('transform', "translate(10,#{10+parseInt((zoomins.length-1)/3+1)*(10+35*4)})")
+    .append('svg')
+    .attr('width', 10+4*(10+35*4))
+    .attr('height', 35*8)
+    .append('use')
+    #.attr('transform', (d) ->  "scale(#{scale}) translate(#{d[0]},#{d[1]})")
+    .attr('xlink:xlink:href','#mainmap')
 
   html = d3.select("svg")
     .attr("title", "Map Rendering")
     .attr("version", 1.1)
     .attr("xmlns", "http://www.w3.org/2000/svg")
-    .attr("xmlns:xlink", "http://www.w3.org/1999/xlink")
+    # you have to double up the reference for d3 to add the nameespace:
+    # https://groups.google.com/forum/?fromgroups#!topic/d3-js/4pOdrFpgjTo
+    .attr("xmlns:xmlns:xlink", "http://www.w3.org/1999/xlink")
+    #.attr('viewBox','0 0 600 400')
+    .attr('preserveAspectRatio','xMinYMin')
     .node().parentNode.innerHTML
   fs.writeFile("out.svg",html)
   console.log "done writing"
