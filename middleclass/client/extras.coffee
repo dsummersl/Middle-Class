@@ -38,13 +38,13 @@ ContextWatcher = (method) ->
 percentBreakouts = (a*0.1 for a in [0..9])
 percentBreakouts.push(1)
 
-makeMap = (callback) ->
+makeMap = (pumatotals,callback) ->
   d3.json 'svg/5percent-combined.geojson', (json) ->
-    doMakeMap('#map',json,callback)
+    doMakeMap('#map',json,pumatotals,callback)
 
 # given a map (json), put it on the target.
 # 'rich' is the rich pattern SVG assumed to be about 100x100
-doMakeMap = (target,json,callback) ->
+doMakeMap = (target,json,pumatotals,callback) ->
   Session?.set('map',json)
   path = d3.geo.path()
   svg = d3.select(target).append('svg')
@@ -103,17 +103,29 @@ doMakeMap = (target,json,callback) ->
     .attr('id', (d)-> "upper-#{d.properties.State}-#{d.properties.PUMA5}-#{d.properties.PERIMETER}")
     .attr('class','part upper')
     .attr('d',path)
-  ### TODO support a mouseover graphic
-  .on('mouseover', (d) ->
-    $('#hoverdetail').text("State: #{d.properties.State}")
-    console.log "doing a mouse over for #upper-#{d.properties.State}-#{d.properties.PUMA5}-#{d.properties.PERIMETER}"
-  )
-  .on('mouseout', (d) ->
-    $('#hoverdetail').text("US")
-    console.log "doing a mouse over for #upper-#{d.properties.State}-#{d.properties.PUMA5}-#{d.properties.PERIMETER}"
-  )
-  ###
+    .on('mouseover', (d) ->
+      ls = Session.get('lastsearch')
+      pumacounts = Session.get('pumacounts')
+      k = "#{d.properties.State}-#{d.properties.PUMA5}"
+      #$('#hoverdetail').text("Lower: #{ls[k].lower} Middle: #{ls[k].middle} Upper: #{ls[k].upper}")
+      $('#hoverdetail').text("Lower: #{ls[k].lower} Middle: #{ls[k].middle} Upper: #{ls[k].upper} -- #{d.properties.samplesPerArea}")
+    )
+    .on('mouseout', (d) ->
+      $('#hoverdetail').text("")
+      #console.log "doing a mouse over for #upper-#{d.properties.State}-#{d.properties.PUMA5}-#{d.properties.PERIMETER}"
+    )
+
+  for d in json.features
+    k = "#{d.properties.State}-#{d.properties.PUMA5}"
+    if pumatotals[k]?
+      # the absolute total of surveys, period
+      pumatotals[k].total = pumatotals[k].lower + pumatotals[k].middle + pumatotals[k].upper
+      d.properties.AREA = 0.01 if d.properties.AREA < 0.01
+      # from 500 to 2 million, lets change the pattern circle radius depending on this density.
+      d.properties.samplesPerArea = pumatotals[k].total / d.properties.AREA
+
   callback?()
+
 
 # make a call, and repain the map, using Meteor constants to keep it up to date.
 paintMap = ->
@@ -126,29 +138,36 @@ paintMap = ->
       if err
         console.log "ERROR: #{err}"
       else
+        # TODO I'm assuming here that the age/school filters are OFF the first time
+        Session.set('pumacounts',result) if not Session.get('pumacounts')?
+        Session.set('lastsearch',result)
         Session.set('status',"Loading stats...")
-        doPaintMap(result,Session.get('map'))
+        doPaintMap(result,Session.get('pumacounts'),Session.get('map'))
         $('#startupdialog').fadeOut()
     )
 
 # a non-meteor method that updates the map.
-doPaintMap = (result,map,svg=null) ->
+doPaintMap = (result,pumatotals,map,svg=null) ->
   features = []
   minSPA = 0
   maxSPA = 0
+  minTotal = 0
+  maxTotal = 0
   for d in map.features
     k = "#{d.properties.State}-#{d.properties.PUMA5}"
     if result[k]?
       features.push(d)
-      result[k].total = result[k].lower + result[k].middle + result[k].upper
-      d.properties.AREA = 0.01 if d.properties.AREA < 0.01
-      # from 500 to 2 million, lets change the pattern circle radius depending on this density.
-      d.properties.samplesPerArea = d.properties.AREA / result[k].total
+      minTotal = pumatotals[k].total if minTotal == 0 or minTotal > pumatotals[k].total
+      maxTotal = pumatotals[k].total if maxTotal == 0 or maxTotal < pumatotals[k].total
       minSPA = d.properties.samplesPerArea if minSPA == 0 or minSPA > d.properties.samplesPerArea
       maxSPA = d.properties.samplesPerArea if maxSPA == 0 or maxSPA < d.properties.samplesPerArea
       #console.log "samples per area? #{result[k].total} / #{d.properties.AREA} = #{result[k].total / d.properties.AREA}"
 
-  om = d3.scale.log().domain([minSPA,maxSPA]).range([0,1])
+  console.log "totals: #{minTotal} - #{maxTotal}"
+  console.log "densities: #{minSPA} - #{maxSPA}"
+  dens = d3.scale.log().domain([minSPA,maxSPA]).range([0,1])
+  totsF = d3.scale.log().domain([minTotal,maxTotal]).range([0,0.8])
+  tots = (d) -> 0.2 + totsF(d)
 
   # http://en.wikipedia.org/wiki/Navajo_white
   # ...it does not easily show stains from cigarette smoke or fingerprints...
@@ -159,29 +178,32 @@ doPaintMap = (result,map,svg=null) ->
   d.exit().remove()
   d.attr('fill', (d) ->
       k = "#{d.properties.State}-#{d.properties.PUMA5}"
-      val = round(result[k].lower / result[k].total,percentBreakouts)
+      val = round(result[k].lower / pumatotals[k].total,percentBreakouts)
       lowcolors(val)
     )
+  d.attr('opacity', (d) -> tots(pumatotals["#{d.properties.State}-#{d.properties.PUMA5}"].total))
  
   d = svg.selectAll(".middle")
     .data(features, (d) -> "#{d.properties.State}-#{d.properties.PUMA5}-#{d.properties.PERIMETER}")
   d.exit().remove()
   d.attr('fill', (d) ->
       k = "#{d.properties.State}-#{d.properties.PUMA5}"
-      val = round(result[k].middle / result[k].total,percentBreakouts)
-      den = round(om(d.properties.samplesPerArea),percentBreakouts)
+      val = round(result[k].middle / pumatotals[k].total,percentBreakouts)
+      den = round(dens(d.properties.samplesPerArea),percentBreakouts)
       "url(#middlepattern-#{val}-#{den})"
     )
+  d.attr('opacity', (d) -> tots(pumatotals["#{d.properties.State}-#{d.properties.PUMA5}"].total))
 
   d = svg.selectAll(".upper")
     .data(features, (d) -> "#{d.properties.State}-#{d.properties.PUMA5}-#{d.properties.PERIMETER}")
   d.exit().remove()
   d.attr('fill', (d) ->
       k = "#{d.properties.State}-#{d.properties.PUMA5}"
-      val = round(result[k].upper / result[k].total,percentBreakouts)
-      den = round(om(d.properties.samplesPerArea),percentBreakouts)
+      val = round(result[k].upper / pumatotals[k].total,percentBreakouts)
+      den = round(dens(d.properties.samplesPerArea),percentBreakouts)
       "url(#upperpattern-#{val}-#{den})"
     )
+  d.attr('opacity', (d) -> tots(pumatotals["#{d.properties.State}-#{d.properties.PUMA5}"].total))
 
 # hack for cakefile to read this as an npm module...
 module?.exports =

@@ -35,7 +35,6 @@ ageMarkers = [17,24,30,34,39,49,59,150]
 schoolMarkers = [9, 11, 12, 13, 14, 16]
 moneyMarkers = (x*5000 for x in [0..20])
 moneyMarkers.push(100000000) # infinity
-console.log "moneyMarkers = #{moneyMarkers}"
 
 ###
 # bb .N/A (less than 3 years old)

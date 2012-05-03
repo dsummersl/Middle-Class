@@ -23,7 +23,9 @@ questions = [ {
 ]
 
 Session.set('questionNumber', 0)
-Session.set('map', null)
+Session.set('map', null) # the geojson data
+Session.set('pumacounts', null) # a map of puma/state -> total surveys at that area
+Session.set('lastsearch', null) # last data dump
 Session.set('status', "Loading map...")
 Session.set('lowmarker',0)
 Session.set('middlemarker',250)
@@ -65,7 +67,11 @@ Meteor.startup ->
     $('#optionsbutton').text("Next") if step > 0 && step < questions.length
     $('#optionsbutton').text("Done") if step == questions.length
 
-  makeMap ->
-    new VisibleOnMovementItem('#optionsbutton',3000)
-    paintMap()
+  # TODO the first paintMap will make a redundant call
+  Meteor.call('getGroup', Session.get('lowmarker'), Session.get('middlemarker'), Session.get('age'), Session.get('school'), (err, result) ->
+    makeMap result, ->
+      new VisibleOnMovementItem('#optionsbutton',3000)
+      paintMap()
+  )
+
 # vim: set et,sw=2,ts=2:
