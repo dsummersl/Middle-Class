@@ -1,30 +1,68 @@
+# TODO dunno why this doesn't import correctly
+maxMoney = 100000000
+ageMarkers = [17,24,30,34,39,49,59,150]
+schoolMarkers = [9, 11, 12, 13, 14, 16]
+# TODO change this to 300k
+#moneyMarkers = (x*5000 for x in [0..60])
+moneyMarkers = (x*5000 for x in [0..20])
+moneyMarkers.push(maxMoney) # infinity
+
+tomoney = (v) ->
+  mm = v / 1000
+  if mm > 1000
+    mm = mm / 1000
+    return "$#{mm}M"
+  else
+    return "$#{mm}k"
+
+moneySelections = ([i,tomoney(i)] for i in moneyMarkers)
+ageSelections = []
+for v,i in ageMarkers
+  if i == 0
+    ageSelections.push [v,"less than #{v+1}"]
+  else
+    ageSelections.push [v,"between #{ageMarkers[i-1]+1} and #{v}"]
+
+schoolMaps =
+  9: "up to high school"
+  11: "some college"
+  12: "an Associate's degree"
+  13: "a Bachelor's degree"
+  14: "a Master's degree"
+  16: "Doctorate"
+
+schoolSelections = []
+for k,v of schoolMaps
+  schoolSelections.push [k,v]
+
 questions = [ {
-    question: "How would you defind low/middle?"
-    questiondesc: "?"
-    questiondefault: 25
-    questionhandler: (v) -> Session.set('lowmarker',v*1000)
+    question: "Where would you set the boundary between lower and middle income?"
+    values: moneySelections
+    questiondefault: 25000
+    questionhandler: (v) ->
+      Session.set('lowmarker',v)
+      removeables = i for i in moneySelections when i[0] <= v
+      moneySelections.splice(i,1)  for i in removeables
+      questions[1].values = moneySelections
   },{
-    question: "How would you defind middle/upper?"
-    questiondesc: "?"
-    questiondefault: 65
-    questionhandler: (v) -> Session.set('middlemarker',v*1000)
+    question: "Where would you set the boundary between middle and upper income?"
+    values: moneySelections
+    # TODO should prevent people from selecting values <= lowerIncome
+    # Ando also change the question default if they picked a higher value
+    questiondefault: 65000
+    questionhandler: (v) -> Session.set('middlemarker',v)
   },{
     question: "How old are you?"
-    questiondesc: "?"
-    questiondefault: 35
+    values: ageSelections
+    questiondefault: 34
     questionhandler: (v) -> Session.set('age',v)
   },{
-    question: "School?"
-    questiondesc: "?"
-    # TODO this needs to be a combobox
+    question: "How far have you gone in school?"
+    values: schoolSelections
     questiondefault: 9
     questionhandler: (v) -> Session.set('school',v)
   }
 ]
-
-# TODO dunno why this doesn't import correctly
-maxMoney = 100000000
-#maxMoney = 85000
 
 Session.set('questionNumber', 0)
 Session.set('map', null) # the geojson data
@@ -36,19 +74,12 @@ Session.set('middlemarker',maxMoney)
 Session.set('age',null)
 Session.set('school',null)
 
-schoolMaps =
-  9: "high school"
-  11: "some college"
-  12: "associate's degree"
-  13: "bachelor's degree"
-  14: "master's degree"
-  16: "doctorate with"
-
 Meteor.startup ->
   $('#optionsbutton').click ->
     $('#question').text(questions[Session.get('questionNumber')].question)
-    #$('#questiondesc').text(questions[Session.get('questionNumber')].questiondesc)
-    $('#filterpopupval').attr('value',questions[Session.get('questionNumber')].questiondefault)
+    $('#filterpopupval option').remove()
+    $('#filterpopupval').append("<option value='#{i[0]}'>#{i[1]}</option>") for i in questions[Session.get('questionNumber')].values
+    $("#filterpopupval option[value='#{questions[Session.get('questionNumber')].questiondefault}']").attr('selected','')
     $('#classesdialog').removeClass('hidden')
     $('#classesdialog').fadeIn()
   $('#changebutton').click ->
@@ -60,15 +91,9 @@ Meteor.startup ->
     if Session.get('middlemarker') == maxMoney && Session.get('lowmarker') == 0
       text = "When the middle class is everyone."
     else if Session.get('middlemarker') == maxMoney && Session.get('lowmarker') == 0
-      text = "When the middle class earns more than $#{Session.get('lowmarker')/1000}k"
+      text = "When the middle class earns more than #{tomoney(Session.get('lowmarker'))}"
     else
-      mm = Session.get('middlemarker') / 1000
-      if mm > 1000
-        mm = mm / 1000
-        mm = "#{mm}M"
-      else
-        mm = "#{mm}k"
-      text = "When the middle class earns $#{Session.get('lowmarker')/1000}k-$#{mm}"
+      text = "When the middle class earns #{tomoney(Session.get('lowmarker'))}-#{tomoney(Session.get('middlemarker'))}"
     text = "#{text}, age #{Session.get('age')}" if Session.get('age')
     text = "#{text}, and #{Session.get('school')}" if Session.get('school')
     $('#filterdesc').text(text)
