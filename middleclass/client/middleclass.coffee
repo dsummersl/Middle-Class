@@ -69,7 +69,7 @@ Session.set('map', null) # the geojson data
 Session.set('pumatotals', null) # a map of puma/state -> total surveys at that area
 Session.set('lastsearch', null) # last data dump
 Session.set('status', "Loading map...")
-Session.set('lowmarker',0)
+Session.set('lowmarker',25000)
 Session.set('middlemarker',maxMoney)
 Session.set('age',null)
 Session.set('school',null)

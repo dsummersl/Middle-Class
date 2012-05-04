@@ -40,9 +40,103 @@ percentBreakouts = (a*0.1 for a in [0..9])
 #percentBreakouts = (a*0.03 for a in [0..30])
 percentBreakouts.push(1)
 
+class MapKey
+  constructor: (target,moneyMarkers) ->
+    @moneyMarkers = moneyMarkers
+    @border = 5
+    @width = 200
+    @height = 100
+    @dataall = ({ x: i, y: 0 } for v,i in @moneyMarkers)
+    @datafiltered = ({ x: v.x, y: 0 } for v in @dataall)
+    @data = d3.layout.stack().offset('zero')
+
+    @x = d3.scale.linear().domain([0,@moneyMarkers.length]).range([0,@width-@border])
+    @y = d3.scale.linear().domain([0,1]).range([0,@height-@border*2])
+
+    @keyArea = d3.svg.area().interpolate('basis')
+      .x( (d) => @border + @x(d.x) )
+      .y0( (d) => @height - @border - @y(d.y0) )
+      .y1( (d) => @height - @border - @y(d.y) )
+
+    svg = d3.select(target).append('svg')
+    @mainKey = svg.append('g')
+      .attr('id','mainmapkey')
+      .attr('class','mapKey')
+      .attr('transform', "translate(10,10)")
+    @mainKey.selectAll('path')
+      .data(@data([@dataall,@datafiltered]))
+      .enter()
+      .append('path')
+      .style('fill', -> d3.interpolateRgb('#aad','#556')(Math.random()))
+      .attr('d', @keyArea)
+    @mainKey.append('line')
+      .attr('id', 'lmLine')
+      .attr('x1', @x(5))
+      .attr('y1', 0)
+      .attr('x2', @x(5))
+      .attr('y2', @height - @border)
+      .style('stroke', 'black')
+    @mainKey.append('line')
+      .attr('id', 'muLine')
+      .attr('x1', @border + @x(10))
+      .attr('y1', 0)
+      .attr('x2', @border + @x(10))
+      .attr('y2', @height - @border)
+      .style('stroke', 'black')
+    @mainKey.append('line')
+      .attr('x1', 0)
+      .attr('y1', @height - @border)
+      .attr('x2', @width)
+      .attr('y2', @height - @border)
+      .style('stroke', 'black')
+    @mainKey.append('text')
+      .attr('class', 'mapkeytext')
+      .attr('x', @border)
+      .attr('y', @height)
+      .attr('text-anchor', 'end')
+      .text('$0')
+    @mainKey.append('text')
+      .attr('class', 'mapkeytext')
+      .attr('x', @width)
+      .attr('y', @height)
+      .attr('text-anchor', 'end')
+      .text('$100M')
+
+  update: (result,pumatotals,lm,middlem) =>
+    max = 0
+    lm = parseInt(lm)
+    middlem = parseInt(middlem)
+    for mm,i in @moneyMarkers
+      @dataall[i].y = 0
+      for k,pt of pumatotals
+        @dataall[i].y += pt.lower if mm <= lm
+        @dataall[i].y += pt.middle if mm > lm and mm <= middlem
+        @dataall[i].y += pt.upper if mm > middlem
+    for mm,i in @moneyMarkers
+      max = @dataall[i].y if max < @dataall[i].y
+    @y = d3.scale.linear().domain([0,max]).range([0,@height-@border*2])
+    #for mm,i in @moneyMarkers
+    #  console.log "for #{i} the height would be #{@y(@dataall[i].y)} for #{@dataall[i].y}"
+    @mainKey.selectAll('path')
+      .data(@data([@dataall,@datafiltered]))
+      .transition()
+      .duration(1000)
+      .attr('d', @keyArea)
+    @mainKey.selectAll('#lmLine')
+      .transition()
+      .duration(1000)
+      .attr('x1', @border + @x((i for m,i in @moneyMarkers when m == lm)[0]))
+      .attr('x2', @border + @x((i for m,i in @moneyMarkers when m == lm)[0]))
+    @mainKey.selectAll('#muLine')
+      .transition()
+      .duration(1000)
+      .attr('x1', @border + @x((i for m,i in @moneyMarkers when m == middlem)[0]))
+      .attr('x2', @border + @x((i for m,i in @moneyMarkers when m == middlem)[0]))
+
 makeMap = (pumatotals,callback) ->
   d3.json 'svg/5percent-combined.geojson', (json) ->
     doMakeMap('#map',json,pumatotals,callback)
+    Session.set('mapkey', new MapKey('#hoverdetail',moneyMarkers))
 
 # given a map (json), put it on the target.
 # 'rich' is the rich pattern SVG assumed to be about 100x100
@@ -114,10 +208,11 @@ doMakeMap = (target,json,pumatotals,callback) ->
       k = "#{d.properties.State}-#{d.properties.PUMA5}"
       #$('#hoverdetail').html("Lower: #{ls[k].lower}<br/>Middle: #{ls[k].middle}<br/>Upper: #{ls[k].upper}")
       #$('#hoverdetail').html("Lower: #{ls[k].lower}<br/>Middle: #{ls[k].middle}<br/>Upper: #{ls[k].upper}<br/>#{d.properties.samplesPerArea}")
-      $('#hoverdetail').html("Lower: #{ls[k].lower}<br/>Middle: #{ls[k].middle}<br/>Upper: #{ls[k].upper}<br/>#{k}")
+      #$('#hoverdetail').html("Lower: #{ls[k].lower}<br/>Middle: #{ls[k].middle}<br/>Upper: #{ls[k].upper}<br/>#{k}")
     )
     .on('mouseout', (d) ->
-      $('#hoverdetail').text("")
+      console.log 'nop'
+      #$('#hoverdetail').text("")
       #console.log "doing a mouse over for #upper-#{d.properties.State}-#{d.properties.PUMA5}-#{d.properties.PERIMETER}"
     )
   # TODO I'm assuming here that the age/school filters are OFF the first time
@@ -147,7 +242,8 @@ paintMap = ->
       else
         Session.set('lastsearch',result)
         Session.set('status',"Loading stats...")
-        doPaintMap(result,Session.get('pumatotals'),Session.get('map'))
+        doPaintMap(result,Session.get('pumatotals'),Session.get('map'),d3.select('#map svg'))
+        Session.get('mapkey').update(result,Session.get('pumatotals'),Session.get('lowmarker'),Session.get('middlemarker'))
         $('#startupdialog').fadeOut()
     )
 
@@ -187,7 +283,7 @@ doPaintMap = (result,pumatotals,map,svg=null) ->
       lowcolors(val)
     )
   #d.attr('opacity', (d) -> tots(pumatotals["#{d.properties.State}-#{d.properties.PUMA5}"].total))
- 
+
   d = svg.selectAll(".middle")
     .data(features, (d) -> "#{d.properties.State}-#{d.properties.PUMA5}-#{d.properties.PERIMETER}")
   d.exit().remove()
