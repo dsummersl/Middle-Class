@@ -13,7 +13,8 @@ Meteor.startup ->
   conn.Entry.count({}, (err,doc) ->
     console.log "entry count: #{doc}"
     if !err and doc == 0
-      console.log "no data: loading data..."
+      console.log "no data: you need to load some data..."
+      ### disabled - kinda dangerous
       # TODO should really wait until these are both done.
       #conn.Grouped.remove({}, (err,doc) -> console.log "err removing Grouped" if err)
       #conn.Entry.remove({}, (err,doc) -> console.log "err removing Entry" if err)
@@ -22,6 +23,7 @@ Meteor.startup ->
       exec cmd, (error,stdout,stderr) ->
         console.log stdout
         console.log stderr
+      ###
   )
   conn.Grouped.count({}, (err,doc) -> console.log "grouped count: #{doc}")
 # vim: set et,sw=2,ts=2:

@@ -95,7 +95,7 @@ Meteor.startup ->
     else
       text = "When the middle class earns #{tomoney(Session.get('lowmarker'))}-#{tomoney(Session.get('middlemarker'))}"
     text = "#{text}, age #{Session.get('age')}" if Session.get('age')
-    text = "#{text}, and #{Session.get('school')}" if Session.get('school')
+    text = "#{text}, #{schoolMaps[Session.get('school')]}" if Session.get('school')
     $('#filterdesc').text(text)
   ContextWatcher -> if Session.get('questionNumber') >= questions.length then $('#optionsbutton').attr('disabled','disabled') else $('#optionsbutton').removeAttr('disabled')
   ContextWatcher ->

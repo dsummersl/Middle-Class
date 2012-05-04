@@ -69,8 +69,8 @@ generateGroups = (state=null) ->
     conn = server.dbconnect('mongodb://127.0.0.1:3002/meteor')
     #for l in server.moneyMarkers[..5]
     #  for m in server.moneyMarkers[-5..] when m > l
-    for l in server.moneyMarkers[..5]
-      for m in server.moneyMarkers[-5..] when m > l
+    for l in server.moneyMarkers
+      for m in server.moneyMarkers when m > l
         result = server.getGroup(conn,l,m) if state == null
         result = server.getGroup(conn,l,m,null,null,state) if state != null
         lCnt = 0
