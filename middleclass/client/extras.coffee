@@ -36,6 +36,7 @@ ContextWatcher = (method) ->
     contextrecaller()
 
 percentBreakouts = (a*0.1 for a in [0..9])
+#percentBreakouts = (a*0.03 for a in [0..30])
 percentBreakouts.push(1)
 
 makeMap = (pumatotals,callback) ->
@@ -57,16 +58,18 @@ doMakeMap = (target,json,pumatotals,callback) ->
         d.attr('patternUnits', 'userSpaceOnUse')
         .attr('x','0')
         .attr('y','0')
-        .attr('width', "#{density*9.9 + 0.1}")
-        .attr('height',"#{density*9.9 + 0.1}")
+        #.attr('width', "10")
+        #.attr('height',"10")
+        .attr('width', "#{10 - density*9.9 + 0.1}")
+        .attr('height',"#{10 - density*9.9 + 0.1}")
         .attr('viewBox','0 0 10 10')
 
       p = defs.append('pattern')
         .attr('id', "middlepattern-#{pb}-#{density}")
         .call(patternArea)
         .append('g')
-        #.attr('transform',(d) -> "rotate(#{-parseInt(pb*90)} 5 5)")
-      p.selectAll('line').data([0..4]).enter().append('line')
+        .attr('transform',(d) -> "rotate(#{-parseInt(pb*90)} 5 5)")
+      p.selectAll('line').data([-1..5]).enter().append('line')
         .attr('x1','0')
         .attr('y1',(d)->"#{d*2}") # 0, 2, 4, 8
         .attr('x2','10')
@@ -78,7 +81,8 @@ doMakeMap = (target,json,pumatotals,callback) ->
         .attr('id', "upperpattern-#{pb}-#{density}")
         .call(patternArea)
         .append('g')
-      p.selectAll('line').data([0..4]).enter().append('line')
+        .attr('transform',(d) -> "rotate(#{-parseInt(pb*90)} 5 5)")
+      p.selectAll('line').data([-1..5]).enter().append('line')
         .attr('x1','0')
         .attr('y1',(d)->"#{d*2+1}") # 1 3 5 9
         .attr('x2','10')
@@ -108,7 +112,8 @@ doMakeMap = (target,json,pumatotals,callback) ->
       pumacounts = Session.get('pumacounts')
       k = "#{d.properties.State}-#{d.properties.PUMA5}"
       #$('#hoverdetail').html("Lower: #{ls[k].lower}<br/>Middle: #{ls[k].middle}<br/>Upper: #{ls[k].upper}")
-      $('#hoverdetail').html("Lower: #{ls[k].lower}<br/>Middle: #{ls[k].middle}<br/>Upper: #{ls[k].upper}<br/>#{d.properties.samplesPerArea}")
+      #$('#hoverdetail').html("Lower: #{ls[k].lower}<br/>Middle: #{ls[k].middle}<br/>Upper: #{ls[k].upper}<br/>#{d.properties.samplesPerArea}")
+      $('#hoverdetail').html("Lower: #{ls[k].lower}<br/>Middle: #{ls[k].middle}<br/>Upper: #{ls[k].upper}<br/>#{k}")
     )
     .on('mouseout', (d) ->
       $('#hoverdetail').text("")

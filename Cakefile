@@ -128,8 +128,8 @@ task 'manualprocess', 'given a csv file, manually convert it to CSV and import i
   )
 
 task 'x','', ->
-  console.log "parse int #{parseInt("00")}"
-  console.log common.round(parseInt("0"),server.ageMarkers)
+  console.log "age markers = #{server.moneyMarkers}"
+  console.log common.round(26,server.moneyMarkers)
 
 # mongodump --host 127.0.0.1:3002 -d meteor
 # tar zcvf dump.tgz dump

@@ -22,13 +22,16 @@ questions = [ {
   }
 ]
 
+# TODO dunno why this doesn't import correctly
+maxMoney = 100000000 / 1000
+
 Session.set('questionNumber', 0)
 Session.set('map', null) # the geojson data
 Session.set('pumacounts', null) # a map of puma/state -> total surveys at that area
 Session.set('lastsearch', null) # last data dump
 Session.set('status', "Loading map...")
 Session.set('lowmarker',0)
-Session.set('middlemarker',250)
+Session.set('middlemarker',maxMoney)
 Session.set('age',null)
 Session.set('school',null)
 
@@ -53,12 +56,15 @@ Meteor.startup ->
     Session.set('questionNumber',Session.get('questionNumber')+1)
   ContextWatcher -> $('#startupdialogmessage').text(Session.get('status'))
   ContextWatcher ->
-    #if Session.get('age') and Session.get('school')
-    #$('#filterdesc').text("When the middle class earns $#{Session.get('lowmarker')}k-$#{Session.get('middlemarker')}k, age #{Session.get('age')}")
-    if Session.get('age')
-      $('#filterdesc').text("When the middle class earns $#{Session.get('lowmarker')}k-$#{Session.get('middlemarker')}k, age #{Session.get('age')}")
+    if Session.get('middlemarker') == maxMoney && Session.get('lowmarker') == 0
+      text = "When the middle class is everyone."
+    else if Session.get('middlemarker') == maxMoney && Session.get('lowmarker') == 0
+      text = "When the middle class earns more than $#{Session.get('lowmarker')}k"
     else
-      $('#filterdesc').text("When the middle class earns $#{Session.get('lowmarker')}k-$#{Session.get('middlemarker')}k")
+      text = "When the middle class earns $#{Session.get('lowmarker')}k-$#{Session.get('middlemarker')}k"
+    text = "#{text}, age #{Session.get('age')}" if Session.get('age')
+    text = "#{text}, and #{Session.get('school')}" if Session.get('school')
+    $('#filterdesc').text(text)
   ContextWatcher -> if Session.get('questionNumber') >= questions.length then $('#optionsbutton').attr('disabled','disabled') else $('#optionsbutton').removeAttr('disabled')
   ContextWatcher ->
     #printStackTrace() if printStackTrace?
@@ -68,6 +74,7 @@ Meteor.startup ->
     $('#optionsbutton').text("Done") if step == questions.length
 
   # TODO the first paintMap will make a redundant call
+  console.log "middlemaker = #{maxMoney} or #{Session.get('middlemarker')}"
   Meteor.call('getGroup', Session.get('lowmarker'), Session.get('middlemarker'), Session.get('age'), Session.get('school'), (err, result) ->
     makeMap result, ->
       new VisibleOnMovementItem('#optionsbutton',3000)

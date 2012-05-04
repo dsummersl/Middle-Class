@@ -10,6 +10,12 @@ round = (v,markers) ->
   return markers[0] if bucket == null
   return bucket
 
+# Breakout finds the first marker in the array markers thats greater than 'v'
+breakout = (v,markers) ->
+  bucket = 0
+  bucket = a for a in markers when a >= v and bucket == 0
+  return bucket
 
 module?.exports =
   round: round
+  breakout: breakout
