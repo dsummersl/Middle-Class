@@ -14,8 +14,7 @@ execHandler = (error,stdout,stderr) ->
   #console.log error if error != null
 
 importCSV = (conn,file,callback) ->
-  #cmd = "rm out.csv ; time cake -p '#{file}' cookCSV > out.csv"
-  cmd = "ls"
+  cmd = "rm out.csv ; time cake -p '#{file}' cookCSV > out.csv"
   console.log "invoking command: '#{cmd}'"
   exec cmd, (error,stdout,stderr) ->
     console.log "Generated #{file}, importing into db..."
