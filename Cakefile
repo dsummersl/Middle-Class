@@ -30,8 +30,8 @@ importCSV = (conn,file,callback) ->
       # TODO not an elegant way to get the state info, then delete, then process these CSVs
       # It causes errors on saves b/c I suspect its tryign to delete at the same time:
       # I guess I'd have to use Future to get by this:
-      #conn.Entry.collection.remove({ state: parseInt(data.State) }) if cnt == 0
-      #conn.Grouped.collection.remove({ state: parseInt(data.State) }) if cnt == 0
+      conn.Entry.collection.remove({ state: parseInt(data.State) }) if cnt == 0
+      conn.Grouped.collection.remove({ state: parseInt(data.State) }) if cnt == 0
       entry = new conn.Entry
         puma: data.PUMA
         state: parseInt(data.State)
@@ -61,13 +61,16 @@ importCSV = (conn,file,callback) ->
             callback(parseInt(data.State))
     reader.addListener 'end', () => alldone = true
 
+# generate a few basic #s that we'll default to...
 generateGroups = (state=null) ->
   Fiber( () ->
     conn = server.dbconnect('mongodb://127.0.0.1:3002/meteor')
-    for l in server.moneyMarkers
-      for m in server.moneyMarkers when m > l
-        result = server.getGroup(conn,l/1000,m/1000) if state == null
-        result = server.getGroup(conn,l/1000,m/1000,null,null,state) if state != null
+    #for l in server.moneyMarkers[..5]
+    #  for m in server.moneyMarkers[-5..] when m > l
+    for l in server.moneyMarkers[..5]
+      for m in server.moneyMarkers[-5..] when m > l
+        result = server.getGroup(conn,l,m) if state == null
+        result = server.getGroup(conn,l,m,null,null,state) if state != null
         lCnt = 0
         mCnt = 0
         uCnt = 0

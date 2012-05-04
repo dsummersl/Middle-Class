@@ -2,12 +2,12 @@ questions = [ {
     question: "How would you defind low/middle?"
     questiondesc: "?"
     questiondefault: 25
-    questionhandler: (v) -> Session.set('lowmarker',v)
+    questionhandler: (v) -> Session.set('lowmarker',v*1000)
   },{
     question: "How would you defind middle/upper?"
     questiondesc: "?"
     questiondefault: 65
-    questionhandler: (v) -> Session.set('middlemarker',v)
+    questionhandler: (v) -> Session.set('middlemarker',v*1000)
   },{
     question: "How old are you?"
     questiondesc: "?"
@@ -23,11 +23,12 @@ questions = [ {
 ]
 
 # TODO dunno why this doesn't import correctly
-maxMoney = 100000000 / 1000
+#maxMoney = 100000000
+maxMoney = 65000
 
 Session.set('questionNumber', 0)
 Session.set('map', null) # the geojson data
-Session.set('pumacounts', null) # a map of puma/state -> total surveys at that area
+Session.set('pumatotals', null) # a map of puma/state -> total surveys at that area
 Session.set('lastsearch', null) # last data dump
 Session.set('status', "Loading map...")
 Session.set('lowmarker',0)
@@ -59,9 +60,15 @@ Meteor.startup ->
     if Session.get('middlemarker') == maxMoney && Session.get('lowmarker') == 0
       text = "When the middle class is everyone."
     else if Session.get('middlemarker') == maxMoney && Session.get('lowmarker') == 0
-      text = "When the middle class earns more than $#{Session.get('lowmarker')}k"
+      text = "When the middle class earns more than $#{Session.get('lowmarker')/1000}k"
     else
-      text = "When the middle class earns $#{Session.get('lowmarker')}k-$#{Session.get('middlemarker')}k"
+      mm = Session.get('middlemarker') / 1000
+      if mm > 1000
+        mm = mm / 1000
+        mm = "#{mm}M"
+      else
+        mm = "#{mm}k"
+      text = "When the middle class earns $#{Session.get('lowmarker')/1000}k-$#{mm}"
     text = "#{text}, age #{Session.get('age')}" if Session.get('age')
     text = "#{text}, and #{Session.get('school')}" if Session.get('school')
     $('#filterdesc').text(text)
@@ -74,7 +81,6 @@ Meteor.startup ->
     $('#optionsbutton').text("Done") if step == questions.length
 
   # TODO the first paintMap will make a redundant call
-  console.log "middlemaker = #{maxMoney} or #{Session.get('middlemarker')}"
   Meteor.call('getGroup', Session.get('lowmarker'), Session.get('middlemarker'), Session.get('age'), Session.get('school'), (err, result) ->
     makeMap result, ->
       new VisibleOnMovementItem('#optionsbutton',3000)

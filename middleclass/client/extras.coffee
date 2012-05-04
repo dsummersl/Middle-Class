@@ -36,6 +36,7 @@ ContextWatcher = (method) ->
     contextrecaller()
 
 percentBreakouts = (a*0.1 for a in [0..9])
+#TODO update the granularity
 #percentBreakouts = (a*0.03 for a in [0..30])
 percentBreakouts.push(1)
 
@@ -109,7 +110,7 @@ doMakeMap = (target,json,pumatotals,callback) ->
     .attr('d',path)
     .on('mouseover', (d) ->
       ls = Session.get('lastsearch')
-      pumacounts = Session.get('pumacounts')
+      pumatotals = Session.get('pumatotals')
       k = "#{d.properties.State}-#{d.properties.PUMA5}"
       #$('#hoverdetail').html("Lower: #{ls[k].lower}<br/>Middle: #{ls[k].middle}<br/>Upper: #{ls[k].upper}")
       #$('#hoverdetail').html("Lower: #{ls[k].lower}<br/>Middle: #{ls[k].middle}<br/>Upper: #{ls[k].upper}<br/>#{d.properties.samplesPerArea}")
@@ -119,7 +120,7 @@ doMakeMap = (target,json,pumatotals,callback) ->
       $('#hoverdetail').text("")
       #console.log "doing a mouse over for #upper-#{d.properties.State}-#{d.properties.PUMA5}-#{d.properties.PERIMETER}"
     )
-
+  # TODO I'm assuming here that the age/school filters are OFF the first time
   for d in json.features
     k = "#{d.properties.State}-#{d.properties.PUMA5}"
     if pumatotals[k]?
@@ -128,6 +129,7 @@ doMakeMap = (target,json,pumatotals,callback) ->
       d.properties.AREA = 0.01 if d.properties.AREA < 0.01
       # from 500 to 2 million, lets change the pattern circle radius depending on this density.
       d.properties.samplesPerArea = pumatotals[k].total / d.properties.AREA
+  Session.set('pumatotals',pumatotals)
 
   callback?()
 
@@ -143,11 +145,9 @@ paintMap = ->
       if err
         console.log "ERROR: #{err}"
       else
-        # TODO I'm assuming here that the age/school filters are OFF the first time
-        Session.set('pumacounts',result) if not Session.get('pumacounts')?
         Session.set('lastsearch',result)
         Session.set('status',"Loading stats...")
-        doPaintMap(result,Session.get('pumacounts'),Session.get('map'))
+        doPaintMap(result,Session.get('pumatotals'),Session.get('map'))
         $('#startupdialog').fadeOut()
     )
 
@@ -195,6 +195,7 @@ doPaintMap = (result,pumatotals,map,svg=null) ->
       k = "#{d.properties.State}-#{d.properties.PUMA5}"
       val = round(result[k].middle / pumatotals[k].total,percentBreakouts)
       den = round(dens(d.properties.samplesPerArea),percentBreakouts)
+      #console.log "url(#middlepattern-#{val}-#{den}) #{result[k].middle} #{pumatotals[k].total}"
       "url(#middlepattern-#{val}-#{den})"
     )
   #d.attr('opacity', (d) -> tots(pumatotals["#{d.properties.State}-#{d.properties.PUMA5}"].total))
