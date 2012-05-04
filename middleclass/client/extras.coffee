@@ -97,6 +97,7 @@ class MapKey
       .attr('y2', @height - @border)
       .style('stroke', 'black')
     @mainKey.append('line')
+      .attr('id', 'mapkeyaxis')
       .attr('x1', 0)
       .attr('y1', @height - @border)
       .attr('x2', @width)
@@ -160,23 +161,38 @@ makeMap = (pumatotals,callback) ->
     Session.set('mapkey', new MapKey('#hoverdetail',moneyMarkers))
 
 addPatterns = (defs) ->
+  # http://en.wikipedia.org/wiki/Navajo_white
+  # ...it does not easily show stains from cigarette smoke or fingerprints...
+  lowcolors = d3.scale.linear().domain([0,1]).range([d3.hsl(36,1,1),d3.hsl(36,0.5,0.5)])
   for density in percentBreakouts
     for pb in percentBreakouts
       patternArea = (d) ->
         d.attr('patternUnits', 'userSpaceOnUse')
         .attr('x','0')
         .attr('y','0')
-        #.attr('width', "10")
-        #.attr('height',"10")
         .attr('width', "#{10 - density*9.9 + 0.1}")
         .attr('height',"#{10 - density*9.9 + 0.1}")
         .attr('viewBox','0 0 10 10')
 
       p = defs.append('pattern')
+        .attr('id', "lowerpattern-#{pb}-#{density}")
+        .call(patternArea)
+        .append('g')
+        .attr('transform',(d) -> "rotate(-45) 5 5)")
+      p.selectAll('line').data([-1..5]).enter().append('line')
+        .attr('x1','0')
+        .attr('y1',(d)->"#{d*2}") # 0, 2, 4, 8
+        .attr('x2','10')
+        .attr('y2',(d)->"#{d*2}")
+        .attr('stroke-width', "#{pb*2.1}")
+        .attr('stroke', lowcolors(pb))
+
+
+      p = defs.append('pattern')
         .attr('id', "middlepattern-#{pb}-#{density}")
         .call(patternArea)
         .append('g')
-        .attr('transform',(d) -> "rotate(#{-parseInt(pb*90)} 5 5)")
+        #.attr('transform',(d) -> "rotate(#{-parseInt(pb*90)} 5 5)")
       p.selectAll('line').data([-1..5]).enter().append('line')
         .attr('x1','0')
         .attr('y1',(d)->"#{d*2}") # 0, 2, 4, 8
@@ -189,14 +205,14 @@ addPatterns = (defs) ->
         .attr('id', "upperpattern-#{pb}-#{density}")
         .call(patternArea)
         .append('g')
-        .attr('transform',(d) -> "rotate(#{-parseInt(pb*90)} 5 5)")
+        #.attr('transform',(d) -> "rotate(#{-parseInt(pb*90)} 5 5)")
       p.selectAll('line').data([-1..5]).enter().append('line')
         .attr('x1','0')
         .attr('y1',(d)->"#{d*2+1}") # 1 3 5 9
         .attr('x2','10')
         .attr('y2',(d)->"#{d*2+1}")
         .attr('stroke-width', "#{pb*2.1}")
-        .attr('stroke', d3.rgb('red').brighter())
+        .attr('stroke', d3.rgb('green').brighter())
 
 # given a map (json), put it on the target.
 # 'rich' is the rich pattern SVG assumed to be about 100x100
@@ -294,9 +310,6 @@ doPaintMap = (result,pumatotals,map,svg=null) ->
   totsF = d3.scale.log().domain([minTotal,maxTotal]).range([0,0.8])
   tots = (d) -> 0.2 + totsF(d)
 
-  # http://en.wikipedia.org/wiki/Navajo_white
-  # ...it does not easily show stains from cigarette smoke or fingerprints...
-  lowcolors = d3.scale.linear().domain([0,1]).range([d3.hsl(36,1,1),d3.hsl(36,0.5,0.5)])
   svg = d3.select('svg') if not svg?
   d = svg.selectAll(".lower")
     .data(features, (d) -> "#{d.properties.State}-#{d.properties.PUMA5}-#{d.properties.PERIMETER}")
@@ -304,7 +317,8 @@ doPaintMap = (result,pumatotals,map,svg=null) ->
   d.attr('fill', (d) ->
       k = "#{d.properties.State}-#{d.properties.PUMA5}"
       val = round(result[k].lower / pumatotals[k].total,percentBreakouts)
-      lowcolors(val)
+      den = round(dens(d.properties.samplesPerArea),percentBreakouts)
+      "url(#lowerpattern-#{val}-#{den})"
     )
   #d.attr('opacity', (d) -> tots(pumatotals["#{d.properties.State}-#{d.properties.PUMA5}"].total))
 

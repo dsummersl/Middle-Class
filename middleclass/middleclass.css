@@ -22,6 +22,15 @@ body {
   font-size: 4pt;
 }
 
+#mapkeyaxis {
+  stroke-width: 0.5;
+}
+
+#lmLine, #muLine {
+  stroke-dasharray: 5,5;
+  stroke-width: 0.5;
+}
+
 .icon: {
   fill: #fff;
   color: #fff;
