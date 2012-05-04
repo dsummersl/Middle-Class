@@ -24,16 +24,19 @@ importCSV = (conn,file,callback) ->
     cnt = 0
     processed = 0
     alldone = false
+    thisState = null
     reader.addListener 'data', (data)=>
       console.log "saving #{processed}/#{cnt}" if cnt % 1000 == 0
       # TODO not an elegant way to get the state info, then delete, then process these CSVs
       # It causes errors on saves b/c I suspect its tryign to delete at the same time:
       # I guess I'd have to use Future to get by this:
-      conn.Entry.collection.remove({ state: parseInt(data.State) }) if cnt == 0
-      conn.Grouped.collection.remove({ state: parseInt(data.State) }) if cnt == 0
+      if cnt == 0
+        thisState = parseInt(data.State)
+        conn.Entry.collection.remove({ state: thisState })
+        conn.Grouped.collection.remove({ state: thisState })
       entry = new conn.Entry
         puma: data.PUMA
-        state: parseInt(data.State)
+        state: thisState
         sex: (data.Sex == "1")
         age: parseInt(data.Age)
         school: parseInt(data.School)
@@ -47,7 +50,7 @@ importCSV = (conn,file,callback) ->
           console.log err.message
           console.log "data: #{JSON.stringify(entry)}"
           console.log " puma = #{data.PUMA}"
-          console.log " state = #{parseInt(data.State)}"
+          console.log " state = #{thisState}"
           console.log " sex: #{(data.Sex == "1")}"
           console.log " age: #{parseInt(data.Age)} age = #{data.Age}"
           console.log " school: #{parseInt(data.School)}"
@@ -56,8 +59,8 @@ importCSV = (conn,file,callback) ->
         else
           processed++
           if processed == cnt and alldone
-            console.log "DONE #{processed}/#{cnt}"
-            callback(parseInt(data.State))
+            console.log "DONE #{processed}/#{cnt} for state #{thisState}"
+            callback(thisState)
     reader.addListener 'end', () => alldone = true
 
 # generate a few basic #s that we'll default to...
@@ -96,6 +99,10 @@ task 'cookCSV', 'take the raw CSV and turn it into cooked down CSV suitable for 
   reader = csv.createCsvFileReader( options.param, {columnsFromHeader: true})
   cooked = {}
   cnt = 0
+  # turn a string into an integer, one way or another:
+  inty = (v) ->
+    return 0 if v == ''
+    return parseInt(v.replace(/^0*/,''))
   console.log "State,PUMA,Sex,Age,School,Income,IncomeCount"
   reader.addListener 'data', (d) ->
     # INTP = interest income
@@ -112,8 +119,7 @@ task 'cookCSV', 'take the raw CSV and turn it into cooked down CSV suitable for 
     # I don't need to include these other columns b/c they are all wrapped up into the PINCP values
     adj = d.ADJINC / 1000000
     total = d.PINCP*adj
-    d.SCHL = 0 if d.SCHL == ''
-    key = "#{d.ST},#{d.PUMA},#{d.SEX},#{common.round(d.AGEP,server.ageMarkers)},#{d.SCHL},#{common.round(total,server.moneyMarkers)}"
+    key = "#{inty(d.ST)},#{d.PUMA},#{d.SEX},#{common.round(inty(d.AGEP),server.ageMarkers)},#{inty d.SCHL},#{common.round(total,server.moneyMarkers)}"
     cooked[key] = 0 if not cooked[key]
     cooked[key] += 1
     cnt++

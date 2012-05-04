@@ -23,8 +23,8 @@ questions = [ {
 ]
 
 # TODO dunno why this doesn't import correctly
-#maxMoney = 100000000
-maxMoney = 85000
+maxMoney = 100000000
+#maxMoney = 85000
 
 Session.set('questionNumber', 0)
 Session.set('map', null) # the geojson data
