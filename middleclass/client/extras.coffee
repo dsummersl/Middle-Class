@@ -59,15 +59,18 @@ class MapKey
       .y1( (d) => @height - @border - @y(d.y) )
 
     svg = d3.select(target).append('svg')
-    @mainKey = svg.append('g')
       .attr('id','mainmapkey')
       .attr('class','mapKey')
+    defs = svg.append('defs')
+    addPatterns(defs)
+    @mainKey = svg.append('g')
       .attr('transform', "translate(10,10)")
     @mainKey.selectAll('path')
       .data(@data([@dataall,@datafiltered]))
       .enter()
       .append('path')
-      .style('fill', -> d3.interpolateRgb('#aad','#556')(Math.random()))
+      #.style('fill', -> d3.interpolateRgb('#aad','#556')(Math.random()))
+      .style('fill', 'url(#middlepattern-0.4-0.4)')
       .attr('d', @keyArea)
     @mainKey.append('line')
       .attr('id', 'lmLine')
@@ -138,15 +141,7 @@ makeMap = (pumatotals,callback) ->
     doMakeMap('#map',json,pumatotals,callback)
     Session.set('mapkey', new MapKey('#hoverdetail',moneyMarkers))
 
-# given a map (json), put it on the target.
-# 'rich' is the rich pattern SVG assumed to be about 100x100
-doMakeMap = (target,json,pumatotals,callback) ->
-  Session?.set('map',json)
-  path = d3.geo.path()
-  svg = d3.select(target).append('svg')
-  defs = svg.append('defs')
-  mainG = svg.append('g')
-    .attr('class','mapparts')
+addPatterns = (defs) ->
   for density in percentBreakouts
     for pb in percentBreakouts
       patternArea = (d) ->
@@ -184,6 +179,17 @@ doMakeMap = (target,json,pumatotals,callback) ->
         .attr('y2',(d)->"#{d*2+1}")
         .attr('stroke-width', "#{pb*2.1}")
         .attr('stroke', d3.rgb('red').brighter())
+
+# given a map (json), put it on the target.
+# 'rich' is the rich pattern SVG assumed to be about 100x100
+doMakeMap = (target,json,pumatotals,callback) ->
+  Session?.set('map',json)
+  path = d3.geo.path()
+  svg = d3.select(target).append('svg')
+  defs = svg.append('defs')
+  mainG = svg.append('g')
+    .attr('class','mapparts')
+  addPatterns(defs)
   parts = mainG.selectAll('.part')
     .data(json.features, (d) -> "#{d.properties.State}-#{d.properties.PUMA5}-#{d.properties.PERIMETER}")
   parts.enter()
