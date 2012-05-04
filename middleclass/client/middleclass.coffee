@@ -45,11 +45,11 @@ schoolMaps =
   16: "doctorate with"
 
 Meteor.startup ->
-  $('#classesdialog').fadeOut()
   $('#optionsbutton').click ->
     $('#question').text(questions[Session.get('questionNumber')].question)
     #$('#questiondesc').text(questions[Session.get('questionNumber')].questiondesc)
     $('#filterpopupval').attr('value',questions[Session.get('questionNumber')].questiondefault)
+    $('#classesdialog').removeClass('hidden')
     $('#classesdialog').fadeIn()
   $('#changebutton').click ->
     $('#classesdialog').fadeOut()

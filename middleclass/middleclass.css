@@ -37,6 +37,10 @@ body {
   color: #ccc;
 }
 
+.hidden {
+  visibility: hidden;
+}
+
 .part:hover {
   border: 1px solid #f00;
 }
