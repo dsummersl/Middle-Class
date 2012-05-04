@@ -29,7 +29,7 @@ schoolMaps =
   12: "an Associate's degree"
   13: "a Bachelor's degree"
   14: "a Master's degree"
-  16: "Doctorate"
+  16: "a Doctorate"
 
 schoolSelections = []
 for k,v of schoolMaps
@@ -95,7 +95,8 @@ Meteor.startup ->
     else
       text = "When the middle class earns #{tomoney(Session.get('lowmarker'))}-#{tomoney(Session.get('middlemarker'))}"
     text = "#{text}, age #{Session.get('age')}" if Session.get('age')
-    text = "#{text}, #{schoolMaps[Session.get('school')]}" if Session.get('school')
+    text = "#{text}, with #{schoolMaps[Session.get('school')]}" if Session.get('school') and Session.get('school') > 9
+    text = "#{text}, #{schoolMaps[Session.get('school')]}" if Session.get('school') and Session.get('school') == 9
     $('#filterdesc').text(text)
   ContextWatcher -> if Session.get('questionNumber') >= questions.length then $('#optionsbutton').attr('disabled','disabled') else $('#optionsbutton').removeAttr('disabled')
   ContextWatcher ->
@@ -104,6 +105,7 @@ Meteor.startup ->
     $('#optionsbutton').text("Start") if step == 0
     $('#optionsbutton').text("Next") if step > 0 && step < questions.length
     $('#optionsbutton').text("Done") if step == questions.length
+    $('#optionsbutton').addClass('hidden') if step == questions.length
 
   # TODO the first paintMap will make a redundant call
   Meteor.call('getGroup', Session.get('lowmarker'), Session.get('middlemarker'), Session.get('age'), Session.get('school'), (err, result) ->
