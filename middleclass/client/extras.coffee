@@ -47,8 +47,11 @@ class MapKey
     @width = 200
     @height = 100
     @dataall = ({ x: i, y: 0 } for v,i in @moneyMarkers)
-    @datafiltered = ({ x: v.x, y: 0 } for v in @dataall)
-    @data = d3.layout.stack().offset('zero')
+    @datalower = ({ x: i, y: 0 } for v,i in @moneyMarkers)
+    @datamiddle= ({ x: i, y: 0 } for v,i in @moneyMarkers)
+    @dataupper = ({ x: i, y: 0 } for v,i in @moneyMarkers)
+    data = d3.layout.stack()
+    @dodata = -> data([@datalower,@datamiddle,@dataupper,@dataall])
 
     @x = d3.scale.linear().domain([0,@moneyMarkers.length]).range([0,@width-@border])
     @y = d3.scale.linear().domain([0,1]).range([0,@height-@border*2])
@@ -56,21 +59,28 @@ class MapKey
     @keyArea = d3.svg.area().interpolate('basis')
       .x( (d) => @border + @x(d.x) )
       .y0( (d) => @height - @border - @y(d.y0) )
-      .y1( (d) => @height - @border - @y(d.y) )
+      .y1( (d) => @height - @border - @y(d.y+d.y0) )
 
     svg = d3.select(target).append('svg')
-      .attr('id','mainmapkey')
-      .attr('class','mapKey')
     defs = svg.append('defs')
     addPatterns(defs)
     @mainKey = svg.append('g')
+      .attr('id','mainmapkey')
+      .attr('class','mapKey')
       .attr('transform', "translate(10,10)")
     @mainKey.selectAll('path')
-      .data(@data([@dataall,@datafiltered]))
+      .data(@dodata())
       .enter()
       .append('path')
       #.style('fill', -> d3.interpolateRgb('#aad','#556')(Math.random()))
-      .style('fill', 'url(#middlepattern-0.4-0.4)')
+      # how to specify?
+      #.style('fill', 'url(#middlepattern-0.4-0.4)')
+      .style('fill', (d,i) ->
+        return 'url(#lowerpattern-0.4-0.4)' if i == 0
+        return 'url(#middlepattern-0.4-0.4)' if i == 1
+        return 'url(#upperpattern-0.4-0.4)' if i == 2
+        'gray'
+      )
       .attr('d', @keyArea)
     @mainKey.append('line')
       .attr('id', 'lmLine')
@@ -111,17 +121,25 @@ class MapKey
     middlem = parseInt(middlem)
     for mm,i in @moneyMarkers
       @dataall[i].y = 0
+      @datalower[i].y = 0
+      @datamiddle[i].y = 0
+      @dataupper[i].y = 0
+      for k,pt of result
+        @datalower[i].y += pt.lower if mm <= lm
+        @datamiddle[i].y += pt.middle if mm > lm and mm <= middlem
+        @dataupper[i].y += pt.upper if mm > middlem
       for k,pt of pumatotals
         @dataall[i].y += pt.lower if mm <= lm
         @dataall[i].y += pt.middle if mm > lm and mm <= middlem
         @dataall[i].y += pt.upper if mm > middlem
+      #@dataall[i].y -= @datalower[i].y + @datamiddle[i].y + @dataupper[i].y
     for mm,i in @moneyMarkers
       max = @dataall[i].y if max < @dataall[i].y
     @y = d3.scale.linear().domain([0,max]).range([0,@height-@border*2])
-    #for mm,i in @moneyMarkers
-    #  console.log "for #{i} the height would be #{@y(@dataall[i].y)} for #{@dataall[i].y}"
+    for mm,i in @moneyMarkers
+      console.log "for #{i} the height would be #{@y(@datalower[i].y)} #{@y(@datamiddle[i].y)} #{@y(@dataupper[i].y)} #{@y(@dataall[i].y)} for #{@dataall[i].y}"
     @mainKey.selectAll('path')
-      .data(@data([@dataall,@datafiltered]))
+      .data(@dodata())
       .transition()
       .duration(1000)
       .attr('d', @keyArea)
