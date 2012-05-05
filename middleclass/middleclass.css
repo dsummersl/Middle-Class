@@ -22,8 +22,9 @@ body {
   font-size: 4pt;
 }
 
-#mapkeyaxis {
+.mapkeyaxis {
   stroke-width: 0.5;
+  stroke: black;
 }
 
 #lmLine, #muLine {

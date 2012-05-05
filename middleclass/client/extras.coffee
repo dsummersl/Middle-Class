@@ -41,11 +41,12 @@ percentBreakouts = (a*0.1 for a in [0..9])
 percentBreakouts.push(1)
 
 class MapKey
-  constructor: (target,moneyMarkers) ->
+  constructor: (target,moneyMarkers,mapJson) ->
     @moneyMarkers = moneyMarkers
     @border = 5
     @width = 200
-    @height = 100
+    @height = 100 # height of the main part
+    @lheight = 100 # extra height for the state map
     @dataall = ({ x: i, y: 0 } for v,i in @moneyMarkers)
     @datalower = ({ x: i, y: 0 } for v,i in @moneyMarkers)
     @datamiddle= ({ x: i, y: 0 } for v,i in @moneyMarkers)
@@ -97,7 +98,7 @@ class MapKey
       .attr('y2', @height - @border)
       .style('stroke', 'black')
     @mainKey.append('line')
-      .attr('id', 'mapkeyaxis')
+      .attr('class', 'mapkeyaxis')
       .attr('x1', 0)
       .attr('y1', @height - @border)
       .attr('x2', @width)
@@ -115,6 +116,95 @@ class MapKey
       .attr('y', @height)
       .attr('text-anchor', 'end')
       .text('$100M')
+    # setup a state with all the reference patterns to explain them...
+    path = d3.geo.path()
+    stateKey = 20 # kansas
+    map = (d for d in mapJson.features when d.properties.State == stateKey)
+    centroid = path.centroid(map[0])
+    @mainKey.append('g')
+      .attr('transform',"scale(1.3) translate(#{30+@border-centroid[0]},#{@border+@height-centroid[1]})")
+      .attr('id', 'maponkey')
+      .selectAll('path')
+      .data(map, (d) -> "#{d.properties.State}-#{d.properties.PUMA5}-#{d.properties.PERIMETER}")
+      .enter()
+      .append('path')
+      .attr('id', (d)-> "maponkey-#{d.properties.PUMA5}")
+      .attr('fill', '#ddd')
+      .attr('stroke', '#ddd')
+      .attr('d',path)
+      .on('mouseover', (d) ->
+        console.log "#{d.properties.State}-#{d.properties.PUMA5}-#{d.properties.PERIMETER}"
+      )
+    @mainKey.select('#maponkey-00100').attr('fill','url(#lowerpattern-1-0)')
+    m = (m for m in map when m.properties.PUMA5 == '00100')[0]
+    c = path.centroid(m)
+    @mainKey.select('#maponkey').append('line').attr('class','mapkeyaxis')
+      .attr('x1',c[0]).attr('y1',c[1]-10).attr('x2',c[0]+10).attr('y2',c[1]-20)
+    @mainKey.select('#maponkey').append('text').attr('class','mapkeytext')
+      .attr('x',c[0]+10).attr('y',c[1]-20).text('only lower')
+
+    @mainKey.select('#maponkey-00200').attr('fill','url(#middlepattern-1-0)')
+    m = (m for m in map when m.properties.PUMA5 == '00200')[0]
+    c = path.centroid(m)
+    @mainKey.select('#maponkey').append('line').attr('class','mapkeyaxis')
+      .attr('x1',c[0]).attr('y1',c[1]-10).attr('x2',c[0]+10).attr('y2',c[1]-20)
+    @mainKey.select('#maponkey').append('text').attr('class','mapkeytext')
+      .attr('x',c[0]+10).attr('y',c[1]-20).text('only middle')
+
+    @mainKey.select('#maponkey-00300').attr('fill','url(#upperpattern-1-0)')
+    m = (m for m in map when m.properties.PUMA5 == '00300')[0]
+    c = path.centroid(m)
+    @mainKey.select('#maponkey').append('line').attr('class','mapkeyaxis')
+      .attr('x1',c[0]).attr('y1',c[1]-10).attr('x2',c[0]+10).attr('y2',c[1]-17)
+    @mainKey.select('#maponkey').append('text').attr('class','mapkeytext')
+      .attr('x',c[0]+10).attr('y',c[1]-17).text('only upper')
+
+    @mainKey.select('#maponkey-01200').attr('fill','url(#lowerpattern-0.5-0)')
+    m = (m for m in map when m.properties.PUMA5 == '01200')[0]
+    c = path.centroid(m)
+    @mainKey.select('#maponkey').append('line').attr('class','mapkeyaxis')
+      .attr('x1',c[0]).attr('y1',c[1]+10).attr('x2',c[0]-10).attr('y2',c[1]+20)
+    @mainKey.select('#maponkey').append('text').attr('class','mapkeytext')
+      .attr('x',c[0]-10).attr('y',c[1]+25).text('lower/upper').attr('text-anchor','middle')
+    @mainKey.select('#maponkey').append('path').attr('fill','url(#upperpattern-0.5-0)').attr('d',path(m))
+
+    @mainKey.select('#maponkey-01000').attr('fill','url(#middlepattern-0.5-0)')
+    m = (m for m in map when m.properties.PUMA5 == '01000')[0]
+    @mainKey.select('#maponkey').append('path').attr('fill','url(#lowerpattern-0.5-0)').attr('d',path(m))
+
+    @mainKey.select('#maponkey-01100').attr('fill','url(#middlepattern-0.5-0)')
+    m = (m for m in map when m.properties.PUMA5 == '01100')[0]
+    c = path.centroid(m)
+    @mainKey.select('#maponkey').append('line').attr('class','mapkeyaxis')
+      .attr('x1',c[0]).attr('y1',c[1]+10).attr('x2',c[0]-10).attr('y2',c[1]+20)
+    @mainKey.select('#maponkey').append('text').attr('class','mapkeytext')
+      .attr('x',c[0]-10).attr('y',c[1]+25).text('lower/middle').attr('text-anchor','middle')
+    @mainKey.select('#maponkey').append('path').attr('fill','url(#lowerpattern-0.5-0)').attr('d',path(m))
+
+    @mainKey.select('#maponkey-00900').attr('fill','url(#upperpattern-0.5-0)')
+    m = (m for m in map when m.properties.PUMA5 == '00900')[0]
+    c = path.centroid(m)
+    @mainKey.select('#maponkey').append('line').attr('class','mapkeyaxis')
+      .attr('x1',c[0]+5).attr('y1',c[1]-5).attr('x2',c[0]+30).attr('y2',c[1])
+    @mainKey.select('#maponkey').append('text').attr('class','mapkeytext')
+      .attr('x',c[0]+17).attr('y',c[1]-2).text('middle/upper').attr('transform',"rotate(30 #{c[0]+30} #{c[1]})")
+    @mainKey.select('#maponkey').append('path').attr('fill','url(#middlepattern-0.5-0)').attr('d',path(m))
+
+    @mainKey.select('#maponkey-01500').attr('fill','url(#upperpattern-0.30000000000000004-0)')
+    m = (m for m in map when m.properties.PUMA5 == '01500')[0]
+    c = path.centroid(m)
+    @mainKey.select('#maponkey').append('line').attr('class','mapkeyaxis')
+      .attr('x1',c[0]+5).attr('y1',c[1]-5).attr('x2',c[0]+30).attr('y2',c[1])
+    @mainKey.select('#maponkey').append('text').attr('class','mapkeytext')
+      .attr('x',c[0]+17).attr('y',c[1]-2).text('lower/middle/upper').attr('transform',"rotate(30 #{c[0]+30} #{c[1]})")
+    @mainKey.select('#maponkey').append('path').attr('fill','url(#middlepattern-0.30000000000000004-0)').attr('d',path(m))
+    @mainKey.select('#maponkey').append('path').attr('fill','url(#lowerpattern-0.30000000000000004-0)').attr('d',path(m))
+
+    @mainKey.select('#maponkey-01600').attr('fill','url(#upperpattern-0.30000000000000004-0)')
+    @mainKey.select('#maponkey').append('path').attr('fill','url(#middlepattern-0.30000000000000004-0)')
+      .attr('d',path((m for m in map when m.properties.PUMA5 == '01600')[0]))
+    @mainKey.select('#maponkey').append('path').attr('fill','url(#lowerpattern-0.30000000000000004-0)')
+      .attr('d',path((m for m in map when m.properties.PUMA5 == '01600')[0]))
 
   update: (result,pumatotals,lm,middlem) =>
     max = 0
@@ -158,7 +248,8 @@ class MapKey
 makeMap = (pumatotals,callback) ->
   d3.json 'svg/5percent-combined.geojson', (json) ->
     doMakeMap('#map',json,pumatotals,callback)
-    Session.set('mapkey', new MapKey('#hoverdetail',moneyMarkers))
+    # pick the state for the key
+    Session.set('mapkey', new MapKey('#hoverdetail',moneyMarkers,json))
 
 addPatterns = (defs) ->
   # http://en.wikipedia.org/wiki/Navajo_white
