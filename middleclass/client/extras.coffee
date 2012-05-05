@@ -214,24 +214,25 @@ class MapKey # The logic for making the map {{{
     max = 0
     lm = parseInt(lm)
     middlem = parseInt(middlem)
+    console.log "Sorting into buckets: #{lm} and #{middlem}"
     for mm,i in @moneyMarkers
       @dataall[i].y = 0
       @datalower[i].y = 0
       @datamiddle[i].y = 0
       @dataupper[i].y = 0
       for k,pt of result
-        @datalower[i].y += pt.lower if mm <= lm
-        @datamiddle[i].y += pt.middle if mm > lm and mm <= middlem
+        @datalower[i].y += pt.lower if lm > mm
+        @datamiddle[i].y += pt.middle if mm >= lm and mm <= middlem
         @dataupper[i].y += pt.upper if mm > middlem
       for k,pt of pumatotals
-        @dataall[i].y += pt.lower if mm <= lm
-        @dataall[i].y += pt.middle if mm > lm and mm <= middlem
+        @dataall[i].y += pt.lower if lm > mm
+        @dataall[i].y += pt.middle if mm >= lm and mm <= middlem
         @dataall[i].y += pt.upper if mm > middlem
     for mm,i in @moneyMarkers
       max = @dataall[i].y if max < @dataall[i].y
     @y = d3.scale.linear().domain([0,max]).range([0,@height-@border*2])
     console.log "total ALL: "+ d3.sum(i.y for i in @dataall)
-    a = d3.sum(i.y for i in @datamiddle)
+    a = d3.sum(i.y for i in @datalower)
     console.log "total LOW: "+ a
     parts = a
     a = d3.sum(i.y for i in @datamiddle)

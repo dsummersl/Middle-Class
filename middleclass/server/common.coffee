@@ -69,6 +69,9 @@ getGroup = (conn,lowmarker,middlemarker,age=null,school=null,state=null) ->
   Future = require('fibers/future')
   lowmarker = round(lowmarker,moneyMarkers)
   middlemarker = round(middlemarker,moneyMarkers)
+  if middlemarker <= lowmarker
+    console.log "Bad search attempted. Quitting out."
+    return
   age = round(age,ageMarkers) if age?
   console.log "group search #{lowmarker} and #{middlemarker}, age #{age}, school #{school}, state #{state}"
   # first see if there are any entries already
@@ -88,12 +91,16 @@ getGroup = (conn,lowmarker,middlemarker,age=null,school=null,state=null) ->
     return done
   console.log "group conditions = #{JSON.stringify(cnd)}"
   grp = (doc,out) =>
-    out.lower += doc.incomecount if doc.income < out.lowmarker
-    out.middle += doc.incomecount if doc.income < out.middlemarker and doc.income >= out.lowmarker
-    out.upper += doc.incomecount if doc.income >= out.middlemarker
-    out.lAmount += doc.income*doc.incomecount if doc.income < out.lowmarker
-    out.mAmount += doc.income*doc.incomecount if doc.income < out.middlemarker and doc.income >= out.lowmarker
-    out.uAmount += doc.income*doc.incomecount if doc.income >= out.middlemarker
+    if doc.income < out.lowmarker
+      out.lower += doc.incomecount
+      out.lAmount += doc.income*doc.incomecount
+    else if doc.income <= out.middlemarker && doc.income >= out.lowmarker
+      # preferential treatment is given to the middle class: we want everyone to fall into it.
+      out.middle += doc.incomecount
+      out.mAmount += doc.income*doc.incomecount
+    else if doc.income > out.middlemarker
+      out.upper += doc.incomecount
+      out.uAmount += doc.income*doc.incomecount
   group = Future.wrap(conn.Entry.collection.group,6)
   doc = group.call(conn.Entry.collection,
     {state: true, puma:true},     # keys
