@@ -36,6 +36,16 @@ ContextWatcher = (method) ->
       ctx.run method
     contextrecaller()
 
+checkPumaTotals = (pumatotals) ->
+  oldPumaTotals = Session.get('pumatotals')
+  newcount = d3.sum(p.lower+p.middle+p.upper for k,p of pumatotals)
+  #if not oldPumaTotals? or (oldPumaTotals.lowmarker != pumatotals.lowmarker or oldPumaTotals.middlemarker != pumatotals.middlemarker)
+  if not oldPumaTotals? or d3.sum(p.total for k,p of oldPumaTotals) <= newcount
+    # TODO I'm assuming here that the age/school filters are OFF the first time
+    for k,v of pumatotals
+      # the absolute total of surveys, period
+      pumatotals[k].total = pumatotals[k].lower + pumatotals[k].middle + pumatotals[k].upper
+    Session.set('pumatotals',pumatotals)
 # }}}
 
 percentBreakouts = (a*0.1 for a in [0..9])
@@ -135,9 +145,9 @@ class MapKey # The logic for making the map {{{
       .attr('fill', '#ddd')
       .attr('stroke', '#ddd')
       .attr('d',path)
-      .on('mouseover', (d) ->
-        console.log "#{d.properties.State}-#{d.properties.PUMA5}-#{d.properties.PERIMETER}"
-      )
+      #.on('mouseover', (d) ->
+      #  console.log "#{d.properties.State}-#{d.properties.PUMA5}-#{d.properties.PERIMETER}"
+      #)
     @mainKey.select('#maponkey-00100').attr('fill','url(#lowerpattern-1-0)')
     m = (m for m in map when m.properties.PUMA5 == '00100')[0]
     c = path.centroid(m)
@@ -214,34 +224,59 @@ class MapKey # The logic for making the map {{{
     max = 0
     lm = parseInt(lm)
     middlem = parseInt(middlem)
-    console.log "Sorting into buckets: #{lm} and #{middlem}"
+    lmi = (i for m,i in @moneyMarkers when m == lm)[0]
+    mlmi = (i for m,i in @moneyMarkers when m == middlem)[0]
+    console.log "Sorting into buckets: #{lm} and #{middlem} -- #{lmi}-#{mlmi}"
     for mm,i in @moneyMarkers
       @dataall[i].y = 0
       @datalower[i].y = 0
       @datamiddle[i].y = 0
       @dataupper[i].y = 0
-      for k,pt of result
-        @datalower[i].y += pt.lower if lm > mm
-        @datamiddle[i].y += pt.middle if mm >= lm and mm <= middlem
-        @dataupper[i].y += pt.upper if mm > middlem
-      for k,pt of pumatotals
-        @dataall[i].y += pt.lower if lm > mm
-        @dataall[i].y += pt.middle if mm >= lm and mm <= middlem
-        @dataall[i].y += pt.upper if mm > middlem
+    alow = d3.sum(pt.lower for k,pt of pumatotals)
+    amed = d3.sum(pt.middle for k,pt of pumatotals)
+    ahig = d3.sum(pt.upper for k,pt of pumatotals)
+    # since I don't have the actual buckets Ive innadvertantly added the values
+    # into multiple buckets....divide it out:
+    low = d3.sum(pt.lower for k,pt of result)
+    med = d3.sum(pt.middle for k,pt of result)
+    hig = d3.sum(pt.upper for k,pt of result)
+    console.log "low #{alow} #{low}"
+    console.log "med #{amed} #{med}"
+    console.log "hig #{ahig} #{hig}"
+    alow = alow - low
+    amed = amed - med
+    ahig = ahig - hig
+
+    low = 0 if isNaN(low)
+    med = 0 if isNaN(med)
+    hig = 0 if isNaN(hig)
+
     for mm,i in @moneyMarkers
-      max = @dataall[i].y if max < @dataall[i].y
+      if i < lmi
+        @dataall[i].y = alow
+        @datalower[i].y = low
+        @datamiddle[i].y = 0
+        @dataupper[i].y = 0
+      else if i >= lmi and i <= mlmi
+        @dataall[i].y = amed
+        @datalower[i].y = 0
+        @datamiddle[i].y = med
+        @dataupper[i].y = 0
+      else if i > mlmi
+        @dataall[i].y = ahig
+        @datalower[i].y = 0
+        @datamiddle[i].y = 0
+        @dataupper[i].y = hig
+      else
+        console.log "don't know what to do with #{i}"
+
+    max = d3.max([low+alow,med+amed,hig+ahig])
     @y = d3.scale.linear().domain([0,max]).range([0,@height-@border*2])
-    console.log "total ALL: "+ d3.sum(i.y for i in @dataall)
-    a = d3.sum(i.y for i in @datalower)
-    console.log "total LOW: "+ a
-    parts = a
-    a = d3.sum(i.y for i in @datamiddle)
-    console.log "total MED: "+ a
-    parts += a
-    a = d3.sum(i.y for i in @dataupper)
-    console.log "total HIG: "+ a
-    parts += a
-    console.log "total ALL? "+ parts
+
+    console.log "low #{alow} #{low}"
+    console.log "med #{amed} #{med}"
+    console.log "hig #{ahig} #{hig}"
+
     @mainKey.selectAll('path')
       .data(@dodata())
       .transition()
@@ -250,13 +285,13 @@ class MapKey # The logic for making the map {{{
     @mainKey.selectAll('#lmLine')
       .transition()
       .duration(500)
-      .attr('x1', @border + @x((i for m,i in @moneyMarkers when m == lm)[0]))
-      .attr('x2', @border + @x((i for m,i in @moneyMarkers when m == lm)[0]))
+      .attr('x1', @border + @x(lmi))
+      .attr('x2', @border + @x(lmi))
     @mainKey.selectAll('#muLine')
       .transition()
       .duration(500)
-      .attr('x1', @border + @x((i for m,i in @moneyMarkers when m == middlem)[0]))
-      .attr('x2', @border + @x((i for m,i in @moneyMarkers when m == middlem)[0]))
+      .attr('x1', @border + @x(mlmi))
+      .attr('x2', @border + @x(mlmi))
 # }}}
 # Make the main map# {{{
 makeMap = (pumatotals,callback) ->
@@ -352,16 +387,12 @@ doMakeMap = (target,json,pumatotals,callback) ->
       #$('#hoverdetail').text("")
       #console.log "doing a mouse over for #upper-#{d.properties.State}-#{d.properties.PUMA5}-#{d.properties.PERIMETER}"
     )
-  # TODO I'm assuming here that the age/school filters are OFF the first time
+  checkPumaTotals(pumatotals)
   for d in json.features
     k = "#{d.properties.State}-#{d.properties.PUMA5}"
     if pumatotals[k]?
-      # the absolute total of surveys, period
-      pumatotals[k].total = pumatotals[k].lower + pumatotals[k].middle + pumatotals[k].upper
       d.properties.AREA = 0.01 if d.properties.AREA < 0.01
-      # from 500 to 2 million, lets change the pattern circle radius depending on this density.
       d.properties.samplesPerArea = pumatotals[k].total / d.properties.AREA
-  Session.set('pumatotals',pumatotals)
   callback?()
 # }}}
 # make a call, and repain the map, using Meteor constants to keep it up to date.# {{{
@@ -377,6 +408,7 @@ paintMap = ->
       else
         Session.set('lastsearch',result)
         Session.set('status',"Loading stats...")
+        checkPumaTotals(result)
         doPaintMap(result,Session.get('pumatotals'),Session.get('map'),d3.select('#map svg'))
         Session.get('mapkey').update(result,Session.get('pumatotals'),Session.get('lowmarker'),Session.get('middlemarker'))
         $('#startupdialog').fadeOut()
@@ -411,7 +443,7 @@ doPaintMap = (result,pumatotals,map,svg=null) ->
   d.exit().remove()
   d.attr('fill', (d) ->
       k = "#{d.properties.State}-#{d.properties.PUMA5}"
-      val = round(result[k].lower / pumatotals[k].total,percentBreakouts)
+      val = round(result[k].lower / (result[k].lower + result[k].middle + result[k].upper),percentBreakouts)
       den = round(dens(d.properties.samplesPerArea),percentBreakouts)
       "url(#lowerpattern-#{val}-#{den})"
     )
@@ -422,7 +454,7 @@ doPaintMap = (result,pumatotals,map,svg=null) ->
   d.exit().remove()
   d.attr('fill', (d) ->
       k = "#{d.properties.State}-#{d.properties.PUMA5}"
-      val = round(result[k].middle / pumatotals[k].total,percentBreakouts)
+      val = round(result[k].middle / (result[k].lower + result[k].middle + result[k].upper),percentBreakouts)
       den = round(dens(d.properties.samplesPerArea),percentBreakouts)
       #console.log "url(#middlepattern-#{val}-#{den}) #{result[k].middle} #{pumatotals[k].total}"
       "url(#middlepattern-#{val}-#{den})"
@@ -434,7 +466,7 @@ doPaintMap = (result,pumatotals,map,svg=null) ->
   d.exit().remove()
   d.attr('fill', (d) ->
       k = "#{d.properties.State}-#{d.properties.PUMA5}"
-      val = round(result[k].upper / pumatotals[k].total,percentBreakouts)
+      val = round(result[k].upper / (result[k].lower + result[k].middle + result[k].upper),percentBreakouts)
       den = round(dens(d.properties.samplesPerArea),percentBreakouts)
       "url(#upperpattern-#{val}-#{den})"
     )

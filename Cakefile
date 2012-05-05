@@ -138,8 +138,8 @@ task 'manualprocess', 'given a csv file, manually convert it to CSV and import i
 task 'x','', ->
   Fiber( () ->
     conn = server.dbconnect('mongodb://127.0.0.1:3002/meteor')
-    result = server.getGroup(conn,0,100000000)
-    #result = server.getGroup(conn,25000,100000000)
+    #result = server.getGroup(conn,0,100000000)
+    result = server.getGroup(conn,25000,100000000)
     lCnt = 0
     mCnt = 0
     uCnt = 0

@@ -117,9 +117,7 @@ getGroup = (conn,lowmarker,middlemarker,age=null,school=null,state=null) ->
   console.log "found from entries: #{doc.length}"
   done = {}
   done["#{i.state}-#{i.puma}"] = i for i in doc
-  cnt = 0
   for d in doc
-    cnt++
     g = new conn.Grouped
       lowmarker: lowmarker
       middlemarker: middlemarker
