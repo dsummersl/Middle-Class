@@ -356,6 +356,7 @@ addPatterns = (defs) ->
 # 'rich' is the rich pattern SVG assumed to be about 100x100
 doMakeMap = (target,json,pumatotals,callback) ->
   Session?.set('map',json)
+  centered = null
   path = d3.geo.path()
   svg = d3.select(target).append('svg')
   defs = svg.append('defs')
@@ -389,6 +390,30 @@ doMakeMap = (target,json,pumatotals,callback) ->
     .on('mouseout', (d) ->
       Session.get('mapkey').update(Session.get('lastsearch'),Session.get('pumatotals'),Session.get('lowmarker'),Session.get('middlemarker'))
     )
+    ### TODO implement clicking: http://bl.ocks.org/2206590
+    .on('click', (d) ->
+      x = 0
+      y = 0
+      k = 1
+      console.log "click on #{d}"
+      if d && centered != d
+        centroid = path.centroid(d)
+        console.log "centering on #{centroid}"
+        x = -centroid[0]
+        y = -centroid[1]
+        k = 4
+        centered = d
+      else
+        console.log "uncentering"
+        centered = null
+
+      mainG.selectAll('.part')
+        .transition()
+        .duration(1000)
+        .attr("transform", "scale(" + k + ")translate(" + x + "," + y + ")")
+        .style("stroke-width", 1.5 / k + "px")
+    )
+    ###
   checkPumaTotals(pumatotals)
   for d in json.features
     k = "#{d.properties.State}-#{d.properties.PUMA5}"
