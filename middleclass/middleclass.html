@@ -25,37 +25,27 @@
 </head>
 
 <body>
-  <div class="container">
-    <button class="btn" id="optionsbutton">...</button>
-    <div id="hoverdetail"></div>
-    <!--
-      TODO add text describing the location...I'd love to show a pyramid of three classes. Height == income, boundaries perfectly set.
-      When the mouse isn't over the entire region, then the pyramid is for the whole US.
-    -->
-    <div class="row">
-      <div class="span12">
-        <div id="map"></div>
-      </div>
+  <button class="btn" id="optionsbutton">...</button>
+  <div id="hoverdetail"></div>
+  <!--
+    TODO add text describing the location...I'd love to show a pyramid of three classes. Height == income, boundaries perfectly set.
+    When the mouse isn't over the entire region, then the pyramid is for the whole US.
+  -->
+  <div id="map"></div>
+  <div id='filterdesc'></div>
+  <div class="modal" id="startupdialog">
+    <div class="modal-header"><h3>Loading</h3></div>
+    <div class="modal-body"><p id="startupdialogmessage"></p></div>
+    <div class="modal-footer"></div>
+  </div>
+  <div class="modal hidden" id="classesdialog">
+    <div class="modal-header"><h3>Questionnaire</h3></div>
+    <div class="modal-body">
+      <p id="question"></p>
+      <select id="filterpopupval"> </select>
     </div>
-    <div class="row">
-      <div class="span12">
-        <div id='filterdesc'></div>
-      </div>
-    </div>
-    <div class="modal" id="startupdialog">
-      <div class="modal-header"><h3>Loading</h3></div>
-      <div class="modal-body"><p id="startupdialogmessage"></p></div>
-      <div class="modal-footer"></div>
-    </div>
-    <div class="modal hidden" id="classesdialog">
-      <div class="modal-header"><h3>Questionnaire</h3></div>
-      <div class="modal-body">
-        <p id="question"></p>
-        <select id="filterpopupval"> </select>
-      </div>
-      <div class="modal-footer">
-          <a href="#" id="changebutton" class="btn btn-primary" id="nextbutton">Save</a>
-      </div>
+    <div class="modal-footer">
+        <a href="#" id="changebutton" class="btn btn-primary" id="nextbutton">Save</a>
     </div>
   </div>
 </body>

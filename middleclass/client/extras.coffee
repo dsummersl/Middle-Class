@@ -347,8 +347,8 @@ addPatterns = (defs) ->
         d.attr('patternUnits', 'userSpaceOnUse')
         .attr('x','0')
         .attr('y','0')
-        .attr('width', "#{7 - density*5.9 + 0.1}")
-        .attr('height',"#{7 - density*5.9 + 0.1}")
+        .attr('width', "#{10 - density*7.9 + 0.1}")
+        .attr('height',"#{10 - density*7.9 + 0.1}")
         .attr('viewBox','0 0 10 10')
       p = defs.append('pattern')
         .attr('id', "lowerpattern-#{pb}-#{density}")
@@ -418,36 +418,32 @@ doMakeMap = (target,json,pumatotals,callback) ->
     .on('mouseout', (d) ->
       Session.get('mapkey').update(Session.get('lastsearch'),Session.get('pumatotals'),Session.get('lowmarker'),Session.get('middlemarker'))
     )
-    ### TODO implement clicking: http://bl.ocks.org/2206590
     .on('click', (d) ->
       x = 0
       y = 0
       k = 1
-      console.log "click on #{d}"
-      if d && centered != d
+      centered = Session.get('zoom')
+      console.log "click on #{centered}"
+      if d && not centered?
         centroid = path.centroid(d)
         console.log "centering on #{centroid}"
-        x = -centroid[0]
-        y = -centroid[1]
-        k = 4
+        k = 6
+        x = -centroid[0] + 300/k
+        y = -centroid[1] + 400/k
+        Session.set('zoom',d)
         centered = d
       else
+        Session.set('zoom',null)
         console.log "uncentering"
         centered = null
 
-      mainG.selectAll('.part')
+      mainG
         .transition()
         .duration(1000)
         .attr("transform", "scale(" + k + ")translate(" + x + "," + y + ")")
         .style("stroke-width", 1.5 / k + "px")
     )
-    ###
   checkPumaTotals(pumatotals)
-  for d in json.features
-    k = "#{d.properties.State}-#{d.properties.PUMA5}"
-    if pumatotals[k]?
-      d.properties.AREA = 0.01 if d.properties.AREA < 0.01
-      d.properties.samplesPerArea = pumatotals[k].total / d.properties.AREA
   callback?()
 # }}}
 # make a call, and repain the map, using Meteor constants to keep it up to date.# {{{
@@ -471,6 +467,7 @@ paintMap = ->
 
 # a non-meteor method that updates the map.
 doPaintMap = (result,pumatotals,map,svg=null) ->
+  path = d3.geo.path()
   features = []
   minSPA = 0
   maxSPA = 0
@@ -482,6 +479,7 @@ doPaintMap = (result,pumatotals,map,svg=null) ->
       features.push(d)
       minTotal = pumatotals[k].total if minTotal == 0 or minTotal > pumatotals[k].total
       maxTotal = pumatotals[k].total if maxTotal == 0 or maxTotal < pumatotals[k].total
+      d.properties.samplesPerArea = path.area(d)
       minSPA = d.properties.samplesPerArea if minSPA == 0 or minSPA > d.properties.samplesPerArea
       maxSPA = d.properties.samplesPerArea if maxSPA == 0 or maxSPA < d.properties.samplesPerArea
       #console.log "samples per area? #{result[k].total} / #{d.properties.AREA} = #{result[k].total / d.properties.AREA}"
@@ -499,7 +497,7 @@ doPaintMap = (result,pumatotals,map,svg=null) ->
   d.attr('fill', (d) ->
       k = "#{d.properties.State}-#{d.properties.PUMA5}"
       val = round(result[k].lower / (result[k].lower + result[k].middle + result[k].upper),percentBreakouts)
-      den = round(dens(d.properties.samplesPerArea),percentBreakouts)
+      den = round(1-dens(d.properties.samplesPerArea),percentBreakouts)
       "url(#lowerpattern-#{val}-#{den})"
     )
   #d.attr('opacity', (d) -> tots(pumatotals["#{d.properties.State}-#{d.properties.PUMA5}"].total))
@@ -510,7 +508,7 @@ doPaintMap = (result,pumatotals,map,svg=null) ->
   d.attr('fill', (d) ->
       k = "#{d.properties.State}-#{d.properties.PUMA5}"
       val = round(result[k].middle / (result[k].lower + result[k].middle + result[k].upper),percentBreakouts)
-      den = round(dens(d.properties.samplesPerArea),percentBreakouts)
+      den = round(1-dens(d.properties.samplesPerArea),percentBreakouts)
       #console.log "url(#middlepattern-#{val}-#{den}) #{result[k].middle} #{pumatotals[k].total}"
       "url(#middlepattern-#{val}-#{den})"
     )
@@ -522,7 +520,7 @@ doPaintMap = (result,pumatotals,map,svg=null) ->
   d.attr('fill', (d) ->
       k = "#{d.properties.State}-#{d.properties.PUMA5}"
       val = round(result[k].upper / (result[k].lower + result[k].middle + result[k].upper),percentBreakouts)
-      den = round(dens(d.properties.samplesPerArea),percentBreakouts)
+      den = round(1-dens(d.properties.samplesPerArea),percentBreakouts)
       "url(#upperpattern-#{val}-#{den})"
     )
   #d.attr('opacity', (d) -> tots(pumatotals["#{d.properties.State}-#{d.properties.PUMA5}"].total))
