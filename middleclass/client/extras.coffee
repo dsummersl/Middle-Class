@@ -220,13 +220,25 @@ class MapKey # The logic for making the map {{{
     @mainKey.select('#maponkey').append('path').attr('fill','url(#upperpattern-0.30000000000000004-0)')
       .attr('d',path((m for m in map when m.properties.PUMA5 == '01600')[0]))# }}}
 
+  updateStatic: (oneVal,lm,middlem) =>
+    lm = parseInt(lm)
+    middlem = parseInt(middlem)
+    lmi = (i for m,i in @moneyMarkers when m == lm)[0]
+    mlmi = (i for m,i in @moneyMarkers when m == middlem)[0]
+    for mm,i in @moneyMarkers
+      @dataall[i].y = 0
+      @datalower[i].y = 0
+      @datamiddle[i].y = 0
+      @dataupper[i].y = 0
+    @privateupdate(0,oneVal.lower,0,oneVal.middle,0,oneVal.upper,lmi,mlmi)
+
+
   update: (result,pumatotals,lm,middlem) =>
     max = 0
     lm = parseInt(lm)
     middlem = parseInt(middlem)
     lmi = (i for m,i in @moneyMarkers when m == lm)[0]
     mlmi = (i for m,i in @moneyMarkers when m == middlem)[0]
-    console.log "Sorting into buckets: #{lm} and #{middlem} -- #{lmi}-#{mlmi}"
     for mm,i in @moneyMarkers
       @dataall[i].y = 0
       @datalower[i].y = 0
@@ -240,9 +252,6 @@ class MapKey # The logic for making the map {{{
     low = d3.sum(pt.lower for k,pt of result)
     med = d3.sum(pt.middle for k,pt of result)
     hig = d3.sum(pt.upper for k,pt of result)
-    console.log "low #{alow} #{low}"
-    console.log "med #{amed} #{med}"
-    console.log "hig #{ahig} #{hig}"
     alow = alow - low
     amed = amed - med
     ahig = ahig - hig
@@ -250,7 +259,9 @@ class MapKey # The logic for making the map {{{
     low = 0 if isNaN(low)
     med = 0 if isNaN(med)
     hig = 0 if isNaN(hig)
+    @privateupdate(alow,low,amed,med,ahig,hig,lmi,mlmi)
 
+  privateupdate: (alow,low,amed,med,ahig,hig,lmi,mlmi) =>
     for mm,i in @moneyMarkers
       if i < lmi
         @dataall[i].y = alow
@@ -272,10 +283,6 @@ class MapKey # The logic for making the map {{{
 
     max = d3.max([low+alow,med+amed,hig+ahig])
     @y = d3.scale.linear().domain([0,max]).range([0,@height-@border*2])
-
-    console.log "low #{alow} #{low}"
-    console.log "med #{amed} #{med}"
-    console.log "hig #{ahig} #{hig}"
 
     @mainKey.selectAll('path')
       .data(@dodata())
@@ -377,15 +384,10 @@ doMakeMap = (target,json,pumatotals,callback) ->
       ls = Session.get('lastsearch')
       pumatotals = Session.get('pumatotals')
       k = "#{d.properties.State}-#{d.properties.PUMA5}"
-      console.log "#{d.properties.State}-#{d.properties.PUMA5}"
-      #$('#hoverdetail').html("Lower: #{ls[k].lower}<br/>Middle: #{ls[k].middle}<br/>Upper: #{ls[k].upper}")
-      #$('#hoverdetail').html("Lower: #{ls[k].lower}<br/>Middle: #{ls[k].middle}<br/>Upper: #{ls[k].upper}<br/>#{d.properties.samplesPerArea}")
-      #$('#hoverdetail').html("Lower: #{ls[k].lower}<br/>Middle: #{ls[k].middle}<br/>Upper: #{ls[k].upper}<br/>#{k}")
+      Session.get('mapkey').updateStatic(ls[k],Session.get('lowmarker'),Session.get('middlemarker'))
     )
     .on('mouseout', (d) ->
-      console.log 'nop'
-      #$('#hoverdetail').text("")
-      #console.log "doing a mouse over for #upper-#{d.properties.State}-#{d.properties.PUMA5}-#{d.properties.PERIMETER}"
+      Session.get('mapkey').update(Session.get('lastsearch'),Session.get('pumatotals'),Session.get('lowmarker'),Session.get('middlemarker'))
     )
   checkPumaTotals(pumatotals)
   for d in json.features
