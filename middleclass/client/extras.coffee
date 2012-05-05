@@ -80,9 +80,9 @@ class MapKey # The logic for making the map {{{
       # how to specify?
       #.style('fill', 'url(#middlepattern-0.4-0.4)')
       .style('fill', (d,i) ->
-        return 'url(#lowerpattern-0.8-0.5)' if i == 0
-        return 'url(#middlepattern-0.8-0.5)' if i == 1
-        return 'url(#upperpattern-0.8-0.5)' if i == 2
+        return 'url(#lowerpattern-0.5-0)' if i == 0
+        return 'url(#middlepattern-0.5-0)' if i == 1
+        return 'url(#upperpattern-0.5-0)' if i == 2
         '#ccc'
       )
       .attr('d', @keyArea)
@@ -144,7 +144,7 @@ class MapKey # The logic for making the map {{{
     @mainKey.select('#maponkey').append('line').attr('class','mapkeyaxis')
       .attr('x1',c[0]).attr('y1',c[1]-10).attr('x2',c[0]+10).attr('y2',c[1]-20)
     @mainKey.select('#maponkey').append('text').attr('class','mapkeytext')
-      .attr('x',c[0]+10).attr('y',c[1]-20).text('only lower')
+      .attr('x',c[0]+10).attr('y',c[1]-20).text('all lower')
 
     @mainKey.select('#maponkey-00200').attr('fill','url(#middlepattern-1-0)')
     m = (m for m in map when m.properties.PUMA5 == '00200')[0]
@@ -152,7 +152,7 @@ class MapKey # The logic for making the map {{{
     @mainKey.select('#maponkey').append('line').attr('class','mapkeyaxis')
       .attr('x1',c[0]).attr('y1',c[1]-10).attr('x2',c[0]+10).attr('y2',c[1]-20)
     @mainKey.select('#maponkey').append('text').attr('class','mapkeytext')
-      .attr('x',c[0]+10).attr('y',c[1]-20).text('only middle')
+      .attr('x',c[0]+10).attr('y',c[1]-20).text('all middle')
 
     @mainKey.select('#maponkey-00300').attr('fill','url(#upperpattern-1-0)')
     m = (m for m in map when m.properties.PUMA5 == '00300')[0]
@@ -160,7 +160,7 @@ class MapKey # The logic for making the map {{{
     @mainKey.select('#maponkey').append('line').attr('class','mapkeyaxis')
       .attr('x1',c[0]).attr('y1',c[1]-10).attr('x2',c[0]+10).attr('y2',c[1]-17)
     @mainKey.select('#maponkey').append('text').attr('class','mapkeytext')
-      .attr('x',c[0]+10).attr('y',c[1]-17).text('only upper')
+      .attr('x',c[0]+10).attr('y',c[1]-17).text('all upper')
 
     @mainKey.select('#maponkey-01200').attr('fill','url(#lowerpattern-0.5-0)')
     m = (m for m in map when m.properties.PUMA5 == '01200')[0]
@@ -184,7 +184,7 @@ class MapKey # The logic for making the map {{{
       .attr('x',c[0]-10).attr('y',c[1]+25).text('lower/middle').attr('text-anchor','middle')
     @mainKey.select('#maponkey').append('path').attr('fill','url(#middlepattern-0.5-0)').attr('d',path(m))
 
-    @mainKey.select('#maponkey-00900').attr('fill','url(#upperpattern-0.5-0)')
+    @mainKey.select('#maponkey-00900').attr('fill','url(#lowerpattern-0-0)')
     m = (m for m in map when m.properties.PUMA5 == '00900')[0]
     c = path.centroid(m)
     @mainKey.select('#maponkey').append('line').attr('class','mapkeyaxis')
@@ -192,6 +192,7 @@ class MapKey # The logic for making the map {{{
     @mainKey.select('#maponkey').append('text').attr('class','mapkeytext')
       .attr('x',c[0]+17).attr('y',c[1]-2).text('middle/upper').attr('transform',"rotate(30 #{c[0]+30} #{c[1]})")
     @mainKey.select('#maponkey').append('path').attr('fill','url(#middlepattern-0.5-0)').attr('d',path(m))
+    @mainKey.select('#maponkey').append('path').attr('fill','url(#upperpattern-0.5-0)').attr('d',path(m))
 
     @mainKey.select('#maponkey-01500').attr('fill','url(#lowerpattern-0.30000000000000004-0)')
     m = (m for m in map when m.properties.PUMA5 == '01500')[0]
@@ -258,7 +259,9 @@ makeMap = (pumatotals,callback) ->
 addPatterns = (defs) ->
   # http://en.wikipedia.org/wiki/Navajo_white
   # ...it does not easily show stains from cigarette smoke or fingerprints...
-  lowcolors = d3.scale.linear().domain([0,1]).range([d3.hsl(36,1,1),d3.hsl(36,0.5,0.5)])
+  lowcolors = d3.scale.linear().domain([0,1]).range([d3.hsl(36,0.3,0.4),d3.hsl(36,0.8,0.9)])
+  middlecolors = d3.scale.linear().domain([0,1]).range([d3.hsl(216,0.3,0.4),d3.hsl(216,0.8,0.9)])
+  uppercolors = d3.scale.linear().domain([0,1]).range([d3.hsl(96,0.3,0.4),d3.hsl(96,0.8,0.9)])
   for density in percentBreakouts
     for pb in percentBreakouts
       patternArea = (d) ->
@@ -277,27 +280,26 @@ addPatterns = (defs) ->
         .attr('y','0')
         .attr('width','10')
         .attr('height','10')
-        .attr('fill', lowcolors(1))
+        .attr('fill', lowcolors(pb))
       p = defs.append('pattern')
         .attr('id', "middlepattern-#{pb}-#{density}")
         .call(patternArea)
         .append('g')
-      p.append('rect')
-        .attr('x','0')
-        .attr('y','0')
-        .attr('width','10')
-        .attr('height',"#{10*pb}")
-        .attr('fill', d3.rgb('blue').brighter())
+        #.attr('transform',(d) -> "rotate(#{parseInt(pb*45)} 0 0)")
+      p.append('polygon')
+        .attr('points',"0,0 #{10-(1-pb)*10},0 10,5 #{10-(1-pb)*10},10 0,10 #{(1-pb)*10},5 0,0")
+        .attr('fill', middlecolors(pb))
       p = defs.append('pattern')
         .attr('id', "upperpattern-#{pb}-#{density}")
         .call(patternArea)
         .append('g')
+        #.attr('transform',(d) -> "rotate(#{-parseInt(pb*45)} 0 0)")
       p.append('rect')
         .attr('x','0')
         .attr('y',"#{10*(1-pb)}")
         .attr('width','10')
         .attr('height',"#{10*pb}")
-        .attr('fill', d3.rgb('green').brighter())
+        .attr('fill', uppercolors(pb))
 
 # given a map (json), put it on the target.
 # 'rich' is the rich pattern SVG assumed to be about 100x100
