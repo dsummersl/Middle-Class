@@ -91,7 +91,7 @@ Meteor.startup ->
     if Session.get('middlemarker') == maxMoney && Session.get('lowmarker') == 0
       text = "When everyone is in the middle class."
     else if parseInt(Session.get('middlemarker')) == maxMoney && parseInt(Session.get('lowmarker')) > 0
-      text = "If poor make less than #{tomoney(Session.get('lowmarker'))}."
+      text = "If the poor make less than #{tomoney(Session.get('lowmarker'))}."
     else
       text = "When the rich earn > #{tomoney(Session.get('middlemarker'))} and the poor < #{tomoney(Session.get('lowmarker'))}"
     text = "#{text}, and you are #{Session.get('age')}" if Session.get('age')

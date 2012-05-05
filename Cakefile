@@ -226,7 +226,7 @@ task 'mapcommands', 'Build the commands to build map.', (options) ->
     console.log "mv #{dir}-combined.geojson middleclass/public/svg"
     console.log "mv #{dir}-huge.geojson middleclass/public/svg"
 
-task 'makecitymaps', 'render all map SVGs used to make final viz.', ->
+task 'savecountrytosvg', 'render all map SVGs used to make final viz.', ->
   require 'd3/index.js'
 
   Fiber( () ->
@@ -238,7 +238,7 @@ task 'makecitymaps', 'render all map SVGs used to make final viz.', ->
       #[25,100,30,13],
       #[25,100,50,9],
       #[25,100,50,13],
-      [25,100,70,9]
+      [25000,100000,70,9]
       #[25,100,70,13]
     ]
     # use the big one for the final viz
@@ -248,9 +248,11 @@ task 'makecitymaps', 'render all map SVGs used to make final viz.', ->
       console.log "rendering #{m}"
       d3.select('#maptemplate').remove()
       d3.select('body').append('div').attr('id','maptemplate')
-      extras.doMakeMap('#maptemplate',puma)
+      extras.doMakeMap('#maptemplate',puma,puma)
       result = server.getGroup(conn,m[0],m[1],m[2],m[3])
-      extras.doPaintMap(result,puma,d3.select('#maptemplate'))
+      console.log "got group..."
+      extras.doPaintMap(result,result,puma,d3.select('#maptemplate'))
+      console.log "painted map..."
       html = d3.select("svg")
         .attr("title", "Map Rendering")
         .attr("version", 1.1)
@@ -263,7 +265,7 @@ task 'makecitymaps', 'render all map SVGs used to make final viz.', ->
     conn.db.disconnect()
   ).run()
 
-task 'makedetailmap', 'render my map to a file - use -param to specify the svg map', (options) ->
+task 'makecitymap', 'render my map to a file - use -param to specify the svg map', (options) ->
   require 'd3/index.js'
   # TODO look into d3.touches -- sounds like an intersection?
 

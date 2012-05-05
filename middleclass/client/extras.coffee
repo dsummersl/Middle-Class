@@ -37,7 +37,7 @@ ContextWatcher = (method) ->
     contextrecaller()
 
 checkPumaTotals = (pumatotals) ->
-  oldPumaTotals = Session.get('pumatotals')
+  oldPumaTotals = Session?.get('pumatotals')
   newcount = d3.sum(p.lower+p.middle+p.upper for k,p of pumatotals)
   #if not oldPumaTotals? or (oldPumaTotals.lowmarker != pumatotals.lowmarker or oldPumaTotals.middlemarker != pumatotals.middlemarker)
   if not oldPumaTotals? or d3.sum(p.total for k,p of oldPumaTotals) <= newcount
@@ -45,7 +45,7 @@ checkPumaTotals = (pumatotals) ->
     for k,v of pumatotals
       # the absolute total of surveys, period
       pumatotals[k].total = pumatotals[k].lower + pumatotals[k].middle + pumatotals[k].upper
-    Session.set('pumatotals',pumatotals)
+    Session?.set('pumatotals',pumatotals)
 # }}}
 
 percentBreakouts = (a*0.1 for a in [0..9])

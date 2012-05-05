@@ -70,7 +70,7 @@ getGroup = (conn,lowmarker,middlemarker,age=null,school=null,state=null) ->
   lowmarker = round(lowmarker,moneyMarkers)
   middlemarker = round(middlemarker,moneyMarkers)
   if middlemarker <= lowmarker
-    console.log "Bad search attempted. Quitting out."
+    console.log "Bad search attempted #{middlemarker} < #{lowmarker}. Quitting out."
     return
   age = round(age,ageMarkers) if age?
   console.log "group search #{lowmarker} and #{middlemarker}, age #{age}, school #{school}, state #{state}"
