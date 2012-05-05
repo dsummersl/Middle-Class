@@ -93,8 +93,6 @@ Meteor.startup ->
     else if parseInt(Session.get('middlemarker')) == maxMoney && parseInt(Session.get('lowmarker')) > 0
       text = "If poor make less than #{tomoney(Session.get('lowmarker'))}."
     else
-      console.log "#{parseInt(Session.get('middlemarker'))} == #{maxMoney}"
-      # 100000000 == 100000000
       text = "When the rich earn > #{tomoney(Session.get('middlemarker'))} and the poor < #{tomoney(Session.get('lowmarker'))}"
     text = "#{text}, age #{Session.get('age')}" if Session.get('age')
     text = "#{text}, with #{schoolMaps[Session.get('school')]}" if Session.get('school') and Session.get('school') > 9

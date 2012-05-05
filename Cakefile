@@ -136,8 +136,26 @@ task 'manualprocess', 'given a csv file, manually convert it to CSV and import i
   )
 
 task 'x','', ->
-  console.log "age markers = #{server.moneyMarkers}"
-  console.log common.round(26,server.moneyMarkers)
+  Fiber( () ->
+    conn = server.dbconnect('mongodb://127.0.0.1:3002/meteor')
+    result = server.getGroup(conn,0,100000000)
+    #result = server.getGroup(conn,25000,100000000)
+    lCnt = 0
+    mCnt = 0
+    uCnt = 0
+    lSum = 0
+    mSum = 0
+    uSum = 0
+    for k,v of result
+      lCnt += v.lower
+      mCnt += v.middle
+      uCnt += v.upper
+      lSum += v.lAmount
+      mSum += v.mAmount
+      uSum += v.uAmount
+    console.log "#{lCnt} + #{mCnt} + #{uCnt} = #{lCnt+mCnt+uCnt} | SUMS #{lSum},#{mSum},#{uSum} | RATIOS #{lSum/lCnt},#{mSum/mCnt},#{uSum/uCnt}"
+    conn.db.disconnect()
+  ).run()
 
 # mongodump --host 127.0.0.1:3002 -d meteor
 # tar zcvf dump.tgz dump

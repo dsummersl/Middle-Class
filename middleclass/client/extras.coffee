@@ -227,25 +227,33 @@ class MapKey # The logic for making the map {{{
         @dataall[i].y += pt.lower if mm <= lm
         @dataall[i].y += pt.middle if mm > lm and mm <= middlem
         @dataall[i].y += pt.upper if mm > middlem
-      #@dataall[i].y -= @datalower[i].y + @datamiddle[i].y + @dataupper[i].y
     for mm,i in @moneyMarkers
       max = @dataall[i].y if max < @dataall[i].y
     @y = d3.scale.linear().domain([0,max]).range([0,@height-@border*2])
-    #for mm,i in @moneyMarkers
-    #  console.log "for #{i} the height would be #{@y(@datalower[i].y)} #{@y(@datamiddle[i].y)} #{@y(@dataupper[i].y)} #{@y(@dataall[i].y)} for #{@dataall[i].y}"
+    console.log "total ALL: "+ d3.sum(i.y for i in @dataall)
+    a = d3.sum(i.y for i in @datamiddle)
+    console.log "total LOW: "+ a
+    parts = a
+    a = d3.sum(i.y for i in @datamiddle)
+    console.log "total MED: "+ a
+    parts += a
+    a = d3.sum(i.y for i in @dataupper)
+    console.log "total HIG: "+ a
+    parts += a
+    console.log "total ALL? "+ parts
     @mainKey.selectAll('path')
       .data(@dodata())
       .transition()
-      .duration(1000)
+      .duration(500)
       .attr('d', @keyArea)
     @mainKey.selectAll('#lmLine')
       .transition()
-      .duration(1000)
+      .duration(500)
       .attr('x1', @border + @x((i for m,i in @moneyMarkers when m == lm)[0]))
       .attr('x2', @border + @x((i for m,i in @moneyMarkers when m == lm)[0]))
     @mainKey.selectAll('#muLine')
       .transition()
-      .duration(1000)
+      .duration(500)
       .attr('x1', @border + @x((i for m,i in @moneyMarkers when m == middlem)[0]))
       .attr('x2', @border + @x((i for m,i in @moneyMarkers when m == middlem)[0]))
 # }}}
