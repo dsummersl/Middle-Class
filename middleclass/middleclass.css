@@ -19,7 +19,7 @@ body {
 }
 
 .mapkeytext {
-  font-size: 4pt;
+  font-size: 5pt;
 }
 
 .mapkeyaxis {
@@ -62,5 +62,5 @@ body {
 }
 
 .part:hover {
-  border: 1px solid #f00;
+  fill: red;
 }

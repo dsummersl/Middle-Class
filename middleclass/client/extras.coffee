@@ -82,19 +82,21 @@ class MapKey # The logic for making the map {{{
       .attr('id','mainmapkey')
       .attr('class','mapKey')
       .attr('transform', "translate(10,10)")
-    @mainKey.selectAll('path')
+    paths = @mainKey.selectAll('path')
       .data(@dodata())
-      .enter()
+    paths.enter()
       .append('path')
-      #.style('fill', -> d3.interpolateRgb('#aad','#556')(Math.random()))
-      # how to specify?
-      #.style('fill', 'url(#middlepattern-0.4-0.4)')
       .style('fill', (d,i) ->
         return 'url(#lowerpattern-0.5-0)' if i == 0
         return 'url(#middlepattern-0.5-0)' if i == 1
         return 'url(#upperpattern-0.5-0)' if i == 2
         '#ccc'
       )
+    paths.enter()
+      .append('text')
+        .attr('id', (d,i) -> "mapkey-desc-#{i}")
+        .attr('class', 'mapkey-desc mapkeytext')
+        .attr('text-anchor', 'middle')
       .attr('d', @keyArea)
     @mainKey.append('line')
       .attr('id', 'lmLine')
@@ -255,7 +257,6 @@ class MapKey # The logic for making the map {{{
     alow = alow - low
     amed = amed - med
     ahig = ahig - hig
-
     low = 0 if isNaN(low)
     med = 0 if isNaN(med)
     hig = 0 if isNaN(hig)
@@ -283,12 +284,39 @@ class MapKey # The logic for making the map {{{
 
     max = d3.max([low+alow,med+amed,hig+ahig])
     @y = d3.scale.linear().domain([0,max]).range([0,@height-@border*2])
+    #console.log "#s: #{low} #{med} #{hig}"
+    #console.log "#a: #{alow} #{amed} #{ahig}"
 
     @mainKey.selectAll('path')
       .data(@dodata())
       .transition()
       .duration(500)
       .attr('d', @keyArea)
+    @mainKey.selectAll('.mapkey-desc')
+      .transition()
+      .duration(500)
+      .attr('x', (d,i) =>
+        if i == 0
+          return @border + @x(lmi)/2 if d3.max([alow,amed,ahig]) == alow
+          return @border + @x(lmi) + @x(mlmi-lmi)/2 if d3.max([alow,amed,ahig]) == amed
+          return @border + @x(mlmi) + @x(@moneyMarkers.length-mlmi)/2 if d3.max([alow,amed,ahig]) == ahig
+        return @border + @x(lmi)/2 if i == 1
+        return @border + @x(lmi+parseInt((mlmi-lmi)/2)) if i == 2
+        return @border + @x(mlmi) + @x(@moneyMarkers.length-mlmi)/2 if i == 3
+      )
+      .attr('y', (d,i) =>
+        return @height - @border - @y(d3.max([alow,amed,ahig])) if i == 0
+        return @height - @border - @y(low) if i == 1
+        return @height - @border - @y(med) if i == 2
+        return @height - @border - @y(hig) if i == 3
+      )
+      .text( (d,i) ->
+        return "#{parseInt( (d3.max([alow,amed,ahig])+d3.max([low,med,hig])) / d3.sum([low,med,hig,alow,amed,ahig]) * 100 )}%" if i == 0 and d3.max([alow,amed,ahig]) != 0
+        return "#{parseInt(low / d3.sum([alow,amed,ahig,low,med,hig]) * 100 )}%" if i == 1 and low != 0
+        return "#{parseInt(med / d3.sum([alow,amed,ahig,low,med,hig]) * 100 )}%" if i == 2 and med != 0
+        return "#{parseInt(hig / d3.sum([alow,amed,ahig,low,med,hig]) * 100 )}%" if i == 3 and hig != 0
+        return ''
+      )
     @mainKey.selectAll('#lmLine')
       .transition()
       .duration(500)
