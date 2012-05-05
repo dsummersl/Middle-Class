@@ -310,9 +310,9 @@ makeMap = (pumatotals,callback) ->
 addPatterns = (defs) ->
   # http://en.wikipedia.org/wiki/Navajo_white
   # ...it does not easily show stains from cigarette smoke or fingerprints...
-  lowcolors = d3.scale.linear().domain([0,1]).range([d3.hsl(36,0.3,0.4),d3.hsl(36,0.8,0.9)])
-  middlecolors = d3.scale.linear().domain([0,1]).range([d3.hsl(216,0.3,0.4),d3.hsl(216,0.8,0.9)])
-  uppercolors = d3.scale.linear().domain([0,1]).range([d3.hsl(96,0.3,0.4),d3.hsl(96,0.8,0.9)])
+  lowcolors = d3.scale.linear().domain([0,1]).range([d3.hsl(36,0.4,0.6),d3.hsl(36,0.8,0.9)])
+  middlecolors = d3.scale.linear().domain([0,1]).range([d3.hsl(216,0.4,0.6),d3.hsl(216,0.8,0.9)])
+  uppercolors = d3.scale.linear().domain([0,1]).range([d3.hsl(96,0.4,0.6),d3.hsl(96,0.8,0.9)])
   for density in percentBreakouts
     for pb in percentBreakouts
       patternArea = (d) ->
