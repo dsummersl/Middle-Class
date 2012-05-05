@@ -89,11 +89,13 @@ Meteor.startup ->
   ContextWatcher -> $('#startupdialogmessage').text(Session.get('status'))
   ContextWatcher ->
     if Session.get('middlemarker') == maxMoney && Session.get('lowmarker') == 0
-      text = "When the middle class is everyone."
-    else if Session.get('middlemarker') == maxMoney && Session.get('lowmarker') == 0
-      text = "When the middle class earns more than #{tomoney(Session.get('lowmarker'))}"
+      text = "When everyone is in the middle class."
+    else if parseInt(Session.get('middlemarker')) == maxMoney && parseInt(Session.get('lowmarker')) > 0
+      text = "If poor make less than #{tomoney(Session.get('lowmarker'))}."
     else
-      text = "When the middle class earns #{tomoney(Session.get('lowmarker'))}-#{tomoney(Session.get('middlemarker'))}"
+      console.log "#{parseInt(Session.get('middlemarker'))} == #{maxMoney}"
+      # 100000000 == 100000000
+      text = "When the rich earn > #{tomoney(Session.get('middlemarker'))} and the poor < #{tomoney(Session.get('lowmarker'))}"
     text = "#{text}, age #{Session.get('age')}" if Session.get('age')
     text = "#{text}, with #{schoolMaps[Session.get('school')]}" if Session.get('school') and Session.get('school') > 9
     text = "#{text}, #{schoolMaps[Session.get('school')]}" if Session.get('school') and Session.get('school') == 9
