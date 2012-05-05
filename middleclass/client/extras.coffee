@@ -76,10 +76,10 @@ class MapKey
       # how to specify?
       #.style('fill', 'url(#middlepattern-0.4-0.4)')
       .style('fill', (d,i) ->
-        return 'url(#lowerpattern-0.4-0.4)' if i == 0
-        return 'url(#middlepattern-0.4-0.4)' if i == 1
-        return 'url(#upperpattern-0.4-0.4)' if i == 2
-        'gray'
+        return 'url(#lowerpattern-0.8-0.5)' if i == 0
+        return 'url(#middlepattern-0.8-0.5)' if i == 1
+        return 'url(#upperpattern-0.8-0.5)' if i == 2
+        '#ccc'
       )
       .attr('d', @keyArea)
     @mainKey.append('line')
@@ -137,8 +137,8 @@ class MapKey
     for mm,i in @moneyMarkers
       max = @dataall[i].y if max < @dataall[i].y
     @y = d3.scale.linear().domain([0,max]).range([0,@height-@border*2])
-    for mm,i in @moneyMarkers
-      console.log "for #{i} the height would be #{@y(@datalower[i].y)} #{@y(@datamiddle[i].y)} #{@y(@dataupper[i].y)} #{@y(@dataall[i].y)} for #{@dataall[i].y}"
+    #for mm,i in @moneyMarkers
+    #  console.log "for #{i} the height would be #{@y(@datalower[i].y)} #{@y(@datamiddle[i].y)} #{@y(@dataupper[i].y)} #{@y(@dataall[i].y)} for #{@dataall[i].y}"
     @mainKey.selectAll('path')
       .data(@dodata())
       .transition()
@@ -170,47 +170,43 @@ addPatterns = (defs) ->
         d.attr('patternUnits', 'userSpaceOnUse')
         .attr('x','0')
         .attr('y','0')
-        .attr('width', "#{10 - density*9.9 + 0.1}")
-        .attr('height',"#{10 - density*9.9 + 0.1}")
+        .attr('width', "#{7 - density*5.9 + 0.1}")
+        .attr('height',"#{7 - density*5.9 + 0.1}")
         .attr('viewBox','0 0 10 10')
-
       p = defs.append('pattern')
         .attr('id', "lowerpattern-#{pb}-#{density}")
         .call(patternArea)
         .append('g')
-        .attr('transform',(d) -> "rotate(-45) 5 5)")
-      p.selectAll('line').data([-1..5]).enter().append('line')
-        .attr('x1','0')
-        .attr('y1',(d)->"#{d*2}") # 0, 2, 4, 8
-        .attr('x2','10')
-        .attr('y2',(d)->"#{d*2}")
+        #.attr('transform',(d) -> "rotate(-45) 5 5)")
+      p.append('line')
+        .attr('x1','5')
+        .attr('y1','5')
+        .attr('x2','5')
+        .attr('y2','0')
         .attr('stroke-width', "#{pb*2.1}")
         .attr('stroke', lowcolors(pb))
-
-
       p = defs.append('pattern')
         .attr('id', "middlepattern-#{pb}-#{density}")
         .call(patternArea)
         .append('g')
         #.attr('transform',(d) -> "rotate(#{-parseInt(pb*90)} 5 5)")
-      p.selectAll('line').data([-1..5]).enter().append('line')
-        .attr('x1','0')
-        .attr('y1',(d)->"#{d*2}") # 0, 2, 4, 8
+      p.append('line')
+        .attr('x1','5')
+        .attr('y1','5')
         .attr('x2','10')
-        .attr('y2',(d)->"#{d*2}")
+        .attr('y2','10')
         .attr('stroke-width', "#{pb*2.1}")
         .attr('stroke', d3.rgb('blue').brighter())
-
       p = defs.append('pattern')
         .attr('id', "upperpattern-#{pb}-#{density}")
         .call(patternArea)
         .append('g')
         #.attr('transform',(d) -> "rotate(#{-parseInt(pb*90)} 5 5)")
-      p.selectAll('line').data([-1..5]).enter().append('line')
-        .attr('x1','0')
-        .attr('y1',(d)->"#{d*2+1}") # 1 3 5 9
-        .attr('x2','10')
-        .attr('y2',(d)->"#{d*2+1}")
+      p.append('line')
+        .attr('x1','5')
+        .attr('y1','5')
+        .attr('x2','0')
+        .attr('y2','10')
         .attr('stroke-width', "#{pb*2.1}")
         .attr('stroke', d3.rgb('green').brighter())
 
@@ -246,6 +242,7 @@ doMakeMap = (target,json,pumatotals,callback) ->
       ls = Session.get('lastsearch')
       pumatotals = Session.get('pumatotals')
       k = "#{d.properties.State}-#{d.properties.PUMA5}"
+      console.log "#{d.properties.State}-#{d.properties.PUMA5}"
       #$('#hoverdetail').html("Lower: #{ls[k].lower}<br/>Middle: #{ls[k].middle}<br/>Upper: #{ls[k].upper}")
       #$('#hoverdetail').html("Lower: #{ls[k].lower}<br/>Middle: #{ls[k].middle}<br/>Upper: #{ls[k].upper}<br/>#{d.properties.samplesPerArea}")
       #$('#hoverdetail').html("Lower: #{ls[k].lower}<br/>Middle: #{ls[k].middle}<br/>Upper: #{ls[k].upper}<br/>#{k}")
@@ -306,7 +303,7 @@ doPaintMap = (result,pumatotals,map,svg=null) ->
 
   console.log "totals: #{minTotal} - #{maxTotal}"
   console.log "densities: #{minSPA} - #{maxSPA}"
-  dens = d3.scale.log().domain([minSPA,maxSPA]).range([0,1])
+  dens = d3.scale.sqrt().domain([minSPA,maxSPA]).range([0,1])
   totsF = d3.scale.log().domain([minTotal,maxTotal]).range([0,0.8])
   tots = (d) -> 0.2 + totsF(d)
 
