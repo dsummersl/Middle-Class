@@ -94,7 +94,7 @@ Meteor.startup ->
       text = "If poor make less than #{tomoney(Session.get('lowmarker'))}."
     else
       text = "When the rich earn > #{tomoney(Session.get('middlemarker'))} and the poor < #{tomoney(Session.get('lowmarker'))}"
-    text = "#{text}, age #{Session.get('age')}" if Session.get('age')
+    text = "#{text}, and you are #{Session.get('age')}" if Session.get('age')
     text = "#{text}, with #{schoolMaps[Session.get('school')]}" if Session.get('school') and Session.get('school') > 9
     text = "#{text}, #{schoolMaps[Session.get('school')]}" if Session.get('school') and Session.get('school') == 9
     $('#filterdesc').text(text)
