@@ -3,6 +3,7 @@ try
 catch e
   console.log "no require"
 
+# Utility classes for fading and such... {{{
 # This class will manage the visibility of a specific item. You specify
 # the timeout and the item, and it will ensure that if the mouse moves
 # a button is visible for at least X ms. Once its visible as long
@@ -35,12 +36,14 @@ ContextWatcher = (method) ->
       ctx.run method
     contextrecaller()
 
+# }}}
+
 percentBreakouts = (a*0.1 for a in [0..9])
 #TODO update the granularity
 #percentBreakouts = (a*0.03 for a in [0..30])
 percentBreakouts.push(1)
 
-class MapKey
+class MapKey # The logic for making the map {{{
   constructor: (target,moneyMarkers,mapJson) ->
     @moneyMarkers = moneyMarkers
     @border = 5
@@ -116,7 +119,7 @@ class MapKey
       .attr('y', @height)
       .attr('text-anchor', 'end')
       .text('$100M')
-    # setup a state with all the reference patterns to explain them...
+    # setup a state with all the reference patterns to explain them...# {{{
     path = d3.geo.path()
     stateKey = 20 # kansas
     map = (d for d in mapJson.features when d.properties.State == stateKey)
@@ -168,18 +171,18 @@ class MapKey
       .attr('x',c[0]-10).attr('y',c[1]+25).text('lower/upper').attr('text-anchor','middle')
     @mainKey.select('#maponkey').append('path').attr('fill','url(#upperpattern-0.5-0)').attr('d',path(m))
 
-    @mainKey.select('#maponkey-01000').attr('fill','url(#middlepattern-0.5-0)')
+    @mainKey.select('#maponkey-01000').attr('fill','url(#lowerpattern-0.5-0)')
     m = (m for m in map when m.properties.PUMA5 == '01000')[0]
-    @mainKey.select('#maponkey').append('path').attr('fill','url(#lowerpattern-0.5-0)').attr('d',path(m))
+    @mainKey.select('#maponkey').append('path').attr('fill','url(#middlepattern-0.5-0)').attr('d',path(m))
 
-    @mainKey.select('#maponkey-01100').attr('fill','url(#middlepattern-0.5-0)')
+    @mainKey.select('#maponkey-01100').attr('fill','url(#lowerpattern-0.5-0)')
     m = (m for m in map when m.properties.PUMA5 == '01100')[0]
     c = path.centroid(m)
     @mainKey.select('#maponkey').append('line').attr('class','mapkeyaxis')
       .attr('x1',c[0]).attr('y1',c[1]+10).attr('x2',c[0]-10).attr('y2',c[1]+20)
     @mainKey.select('#maponkey').append('text').attr('class','mapkeytext')
       .attr('x',c[0]-10).attr('y',c[1]+25).text('lower/middle').attr('text-anchor','middle')
-    @mainKey.select('#maponkey').append('path').attr('fill','url(#lowerpattern-0.5-0)').attr('d',path(m))
+    @mainKey.select('#maponkey').append('path').attr('fill','url(#middlepattern-0.5-0)').attr('d',path(m))
 
     @mainKey.select('#maponkey-00900').attr('fill','url(#upperpattern-0.5-0)')
     m = (m for m in map when m.properties.PUMA5 == '00900')[0]
@@ -190,7 +193,7 @@ class MapKey
       .attr('x',c[0]+17).attr('y',c[1]-2).text('middle/upper').attr('transform',"rotate(30 #{c[0]+30} #{c[1]})")
     @mainKey.select('#maponkey').append('path').attr('fill','url(#middlepattern-0.5-0)').attr('d',path(m))
 
-    @mainKey.select('#maponkey-01500').attr('fill','url(#upperpattern-0.30000000000000004-0)')
+    @mainKey.select('#maponkey-01500').attr('fill','url(#lowerpattern-0.30000000000000004-0)')
     m = (m for m in map when m.properties.PUMA5 == '01500')[0]
     c = path.centroid(m)
     @mainKey.select('#maponkey').append('line').attr('class','mapkeyaxis')
@@ -198,13 +201,13 @@ class MapKey
     @mainKey.select('#maponkey').append('text').attr('class','mapkeytext')
       .attr('x',c[0]+17).attr('y',c[1]-2).text('lower/middle/upper').attr('transform',"rotate(30 #{c[0]+30} #{c[1]})")
     @mainKey.select('#maponkey').append('path').attr('fill','url(#middlepattern-0.30000000000000004-0)').attr('d',path(m))
-    @mainKey.select('#maponkey').append('path').attr('fill','url(#lowerpattern-0.30000000000000004-0)').attr('d',path(m))
+    @mainKey.select('#maponkey').append('path').attr('fill','url(#upperpattern-0.30000000000000004-0)').attr('d',path(m))
 
-    @mainKey.select('#maponkey-01600').attr('fill','url(#upperpattern-0.30000000000000004-0)')
+    @mainKey.select('#maponkey-01600').attr('fill','url(#lowerpattern-0.30000000000000004-0)')
     @mainKey.select('#maponkey').append('path').attr('fill','url(#middlepattern-0.30000000000000004-0)')
       .attr('d',path((m for m in map when m.properties.PUMA5 == '01600')[0]))
-    @mainKey.select('#maponkey').append('path').attr('fill','url(#lowerpattern-0.30000000000000004-0)')
-      .attr('d',path((m for m in map when m.properties.PUMA5 == '01600')[0]))
+    @mainKey.select('#maponkey').append('path').attr('fill','url(#upperpattern-0.30000000000000004-0)')
+      .attr('d',path((m for m in map when m.properties.PUMA5 == '01600')[0]))# }}}
 
   update: (result,pumatotals,lm,middlem) =>
     max = 0
@@ -244,7 +247,8 @@ class MapKey
       .duration(1000)
       .attr('x1', @border + @x((i for m,i in @moneyMarkers when m == middlem)[0]))
       .attr('x2', @border + @x((i for m,i in @moneyMarkers when m == middlem)[0]))
-
+# }}}
+# Make the main map# {{{
 makeMap = (pumatotals,callback) ->
   d3.json 'svg/5percent-combined.geojson', (json) ->
     doMakeMap('#map',json,pumatotals,callback)
@@ -268,38 +272,32 @@ addPatterns = (defs) ->
         .attr('id', "lowerpattern-#{pb}-#{density}")
         .call(patternArea)
         .append('g')
-        #.attr('transform',(d) -> "rotate(-45) 5 5)")
-      p.append('line')
-        .attr('x1','5')
-        .attr('y1','5')
-        .attr('x2','5')
-        .attr('y2','0')
-        .attr('stroke-width', "#{pb*2.1}")
-        .attr('stroke', lowcolors(pb))
+      p.append('rect')
+        .attr('x','0')
+        .attr('y','0')
+        .attr('width','10')
+        .attr('height','10')
+        .attr('fill', lowcolors(1))
       p = defs.append('pattern')
         .attr('id', "middlepattern-#{pb}-#{density}")
         .call(patternArea)
         .append('g')
-        #.attr('transform',(d) -> "rotate(#{-parseInt(pb*90)} 5 5)")
-      p.append('line')
-        .attr('x1','5')
-        .attr('y1','5')
-        .attr('x2','10')
-        .attr('y2','10')
-        .attr('stroke-width', "#{pb*2.1}")
-        .attr('stroke', d3.rgb('blue').brighter())
+      p.append('rect')
+        .attr('x','0')
+        .attr('y','0')
+        .attr('width','10')
+        .attr('height',"#{10*pb}")
+        .attr('fill', d3.rgb('blue').brighter())
       p = defs.append('pattern')
         .attr('id', "upperpattern-#{pb}-#{density}")
         .call(patternArea)
         .append('g')
-        #.attr('transform',(d) -> "rotate(#{-parseInt(pb*90)} 5 5)")
-      p.append('line')
-        .attr('x1','5')
-        .attr('y1','5')
-        .attr('x2','0')
-        .attr('y2','10')
-        .attr('stroke-width', "#{pb*2.1}")
-        .attr('stroke', d3.rgb('green').brighter())
+      p.append('rect')
+        .attr('x','0')
+        .attr('y',"#{10*(1-pb)}")
+        .attr('width','10')
+        .attr('height',"#{10*pb}")
+        .attr('fill', d3.rgb('green').brighter())
 
 # given a map (json), put it on the target.
 # 'rich' is the rich pattern SVG assumed to be about 100x100
@@ -353,11 +351,9 @@ doMakeMap = (target,json,pumatotals,callback) ->
       # from 500 to 2 million, lets change the pattern circle radius depending on this density.
       d.properties.samplesPerArea = pumatotals[k].total / d.properties.AREA
   Session.set('pumatotals',pumatotals)
-
   callback?()
-
-
-# make a call, and repain the map, using Meteor constants to keep it up to date.
+# }}}
+# make a call, and repain the map, using Meteor constants to keep it up to date.# {{{
 paintMap = ->
   paintMapContext = new Meteor.deps.Context()
   paintMapContext.on_invalidate paintMap
@@ -432,6 +428,7 @@ doPaintMap = (result,pumatotals,map,svg=null) ->
       "url(#upperpattern-#{val}-#{den})"
     )
   #d.attr('opacity', (d) -> tots(pumatotals["#{d.properties.State}-#{d.properties.PUMA5}"].total))
+# }}}
 
 # hack for cakefile to read this as an npm module...
 module?.exports =
@@ -439,3 +436,5 @@ module?.exports =
   doMakeMap: doMakeMap
   doPaintMap: doPaintMap
   paintMap: paintMap
+
+#vim: set fdm=marker:
