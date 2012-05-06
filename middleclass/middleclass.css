@@ -10,9 +10,10 @@ body {
 
 #map {
   /*border: 1px solid #000;*/
-  height: 600px;
-  margin-top: 150px;
-  margin-left: 250px;
+  height: 500px;
+  width: 950px;
+  margin-top: 50px;
+  margin-left: 225px;
   fill: #333;
 }
 
@@ -54,6 +55,7 @@ body {
 }
 
 #filterdesc {
+  margin-top: 25px;
   text-align: center;
   font-family: "Century Gothic";
   color: #aaa;

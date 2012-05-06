@@ -232,13 +232,14 @@ task 'savecountrytosvg', 'render all map SVGs used to make final viz.', ->
   Fiber( () ->
     conn = server.dbconnect('mongodb://127.0.0.1:3002/meteor')
     maps = [
-      #[25,100,null,null],
+      #[10000,100000000,null,null],
+      [10000,80000,null,null],
       #[25,100,10,null],
       #[25,100,30,9],
       #[25,100,30,13],
       #[25,100,50,9],
       #[25,100,50,13],
-      [25000,100000,70,9]
+      #[25000,100000,70,9]
       #[25,100,70,13]
     ]
     # use the big one for the final viz
