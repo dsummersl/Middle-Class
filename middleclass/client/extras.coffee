@@ -413,6 +413,7 @@ doMakeMap = (target,json,pumatotals,callback) ->
       ls = Session.get('lastsearch')
       pumatotals = Session.get('pumatotals')
       k = "#{d.properties.State}-#{d.properties.PUMA5}"
+      console.log "this area = #{path.area(d)}"
       Session.get('mapkey').updateStatic(ls[k],Session.get('lowmarker'),Session.get('middlemarker'))
     )
     .on('mouseout', (d) ->
@@ -427,7 +428,7 @@ doMakeMap = (target,json,pumatotals,callback) ->
       if d && not centered?
         centroid = path.centroid(d)
         console.log "centering on #{centroid}"
-        k = 6
+        k = 8
         x = -centroid[0] + 300/k
         y = -centroid[1] + 400/k
         Session.set('zoom',d)
@@ -480,6 +481,8 @@ doPaintMap = (result,pumatotals,map,svg=null) ->
       minTotal = pumatotals[k].total if minTotal == 0 or minTotal > pumatotals[k].total
       maxTotal = pumatotals[k].total if maxTotal == 0 or maxTotal < pumatotals[k].total
       d.properties.samplesPerArea = path.area(d)
+      d.properties.samplesPerArea = 1000 if d.properties.samplesPerArea > 1000
+      d.properties.samplesPerArea = 1 if d.properties.samplesPerArea < 1
       minSPA = d.properties.samplesPerArea if minSPA == 0 or minSPA > d.properties.samplesPerArea
       maxSPA = d.properties.samplesPerArea if maxSPA == 0 or maxSPA < d.properties.samplesPerArea
       #console.log "samples per area? #{result[k].total} / #{d.properties.AREA} = #{result[k].total / d.properties.AREA}"
